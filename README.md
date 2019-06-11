@@ -154,3 +154,7 @@ Out[9]:
 8            abortion              abortion movie         NaN       NaN   abortion        movie
 9  abortion laws 2019  abortion laws 2019 georgia         NaN  abortion  laws 2019      georgia
 ```
+
+Plotted in [Gephi](https://gephi.org/). The size of nodes corresponds to their PageRank, and node colors indicate communities that were determined using Gephi's default community detection algorithm, the Louvain method:
+
+![Abortion Association Network](img/abortion_plot_pagerank.png?raw=true "Abortion Association Network")
