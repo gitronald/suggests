@@ -3,7 +3,7 @@
 This package provides tools for conducting algorithm audits of search engine autocomplete. The functionality of this package was demonstrated in the paper listed below, if you use it in your work, please cite our paper!
 
 Robertson R. E., Jiang, S., Lazer, D., & Wilson, C. (2019). Auditing autocomplete: Recursive algorithm interrogation and suggestion networks. 
-In _Proceedings of the 11th ACM Conference on Web Science (WebSci 2019)_.
+In _Proceedings of the 11th ACM Conference on Web Science (WebSci 2019)_. [PDF](https://cbw.sh/static/pdf/robertson-websci19.pdf)
 
 ```
 @proceedings{robertson2019autocomplete,
