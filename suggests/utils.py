@@ -20,7 +20,7 @@ def all_abs_paths(dir):
 def read_lines(fp):
     with open(fp, 'r') as infile:
         if '.txt' in fp: return [line.strip() for line in infile]
-        elif '.json' in fp:  return [json.loads(line) for line in infile]
+        elif '.json' in fp:  return [json.loads(line.strip()) for line in infile]
 
 def write_lines(iter_data, fp, overwrite=False):
     mode = 'w' if overwrite else 'a+'

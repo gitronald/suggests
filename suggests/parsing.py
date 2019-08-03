@@ -142,7 +142,7 @@ def add_parent_nodes(edges):
         'grandparent': gb.grandparent.apply(lambda col: col.str.cat(sep=' ') if col.any() else None),
         'parent': gb.parent.apply(lambda col: col.str.cat(sep=' ') if col.any() else None)
     }).reset_index()
-    edges = edges_original.merge(merged_parents, on='edge', how='right')
+    edges = edges_original.merge(merged_parents, on='edge', how='left')
     return edges
 
 def add_metanodes(row):
