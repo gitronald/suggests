@@ -11,7 +11,6 @@ setuptools.setup(
                  'License :: OSI Approved :: MIT License'],
     packages=setuptools.find_packages(),
     install_requires=['requests', 'pandas', 'numpy', 'bs4'],
-    scripts=['scripts/example.py'],
     python_requires='~=3.6',
     package_data={'': ['*.txt', '*.md']},
     license='MIT'
