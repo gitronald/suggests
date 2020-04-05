@@ -105,20 +105,21 @@ def to_edgelist(tree, self_loops=False):
                     ('datetime', row['datetime'])
                 ])
                 edge_list.append(edge)
-        else: # If no suggests at root, return empty df
+        else: # If no suggests at root, append empty root
             if row['depth'] == 0:
                 no_edges = OrderedDict([
-                        ('root', row['root']), 
-                        ('edge', None), 
-                        ('source', row['qry']),
-                        ('target', None),
-                        ('rank', 1), 
-                        ('depth', row['depth']),
-                        ('search_engine', row['source']),
-                        ('datetime', row['datetime'])
-                    ])
-                return pd.DataFrame(no_edges, index=[0])
-    edge_df = pd.Series(edge_list).apply(pd.Series)
+                    ('root', row['root']), 
+                    ('edge', None), 
+                    ('source', row['qry']),
+                    ('target', None),
+                    ('rank', 1), 
+                    ('depth', row['depth']),
+                    ('search_engine', row['source']),
+                    ('datetime', row['datetime'])
+                ])
+                edge_list.append(no_edges)
+                
+    edge_df = pd.DataFrame(edge_list)
     return edge_df
 
 def add_parent_nodes(edges):
