@@ -1,3 +1,4 @@
+__version__ = "0.0.0"
 
 from .suggests import get_suggests
 from .suggests import get_suggests_tree
