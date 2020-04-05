@@ -1,7 +1,7 @@
 import setuptools
 setuptools.setup(
     name="suggests",
-    version="0.1.0",
+    version="0.1.1",
     author='Ronald E. Robertson',
     author_email='rer@ronalderobertson.com',
     description="Algorithm auditing tools for search engine autocomplete",
