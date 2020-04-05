@@ -22,7 +22,7 @@ This package currently supports retrieving suggestions from Google and Bing. A s
 Download with pip and git:
 
 ```bash
-pip install git+https://github.com/github/suggests
+pip install git+https://github.com/gitronald/suggests
 ```
 
 ## Usage
