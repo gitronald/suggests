@@ -19,12 +19,10 @@ This package currently supports retrieving suggestions from Google and Bing. A s
 
 ## Installation
 
-Download from github and then use the package manager [pip](https://pip.pypa.io/en/stable/) to install suggests.
+Download with pip and git:
 
 ```bash
-git clone https://github.com/github/suggests.git
-cd suggests
-pip install suggests
+pip install git+https://github.com/github/suggests
 ```
 
 ## Usage
