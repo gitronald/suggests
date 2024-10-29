@@ -1,9 +1,9 @@
 import setuptools
 setuptools.setup(
     name="suggests",
-    version="0.1.1",
+    version="0.1.2",
     author='Ronald E. Robertson',
-    author_email='rer@ronalderobertson.com',
+    author_email='rer@acm.org',
     description="Algorithm auditing tools for search engine autocomplete",
     keywords="suggestions autocomplete google bing",
     url='http://github.com/gitronald/suggests',
