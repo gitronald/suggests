@@ -52,11 +52,11 @@ class Logger(object):
         
         # Loggers: change logging options for root and other packages
         loggers = {
-            # Root logger
-            '': { 
+            # Package logger (not root)
+            'suggests': { 
                 'handlers': list(handlers.keys()),
                 'level': 'DEBUG',
-                'propagate': True
+                'propagate': False
             },
             # External loggers
             'requests': {'level': 'WARNING'},
@@ -74,6 +74,6 @@ class Logger(object):
             'loggers': loggers
         }
         
-    def start(self, name=__name__):
+    def start(self, name="suggests"):
         logging.config.dictConfig(self.log_config)
         return logging.getLogger(name)
