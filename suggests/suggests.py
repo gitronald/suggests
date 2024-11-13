@@ -6,7 +6,7 @@ import json
 import urllib
 import requests
 from numpy import random
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Union, Any
 
 from . import parsing
@@ -114,7 +114,7 @@ def get_suggests(
     
     tree: Dict[str, Any] = {
         'qry': qry,
-        'datetime': str(datetime.utcnow()),
+        'datetime': str(datetime.now(timezone.utc).replace(tzinfo=None)),
         'source': source,
         'data': requester(qry, source, sesh, sleep)
     }
