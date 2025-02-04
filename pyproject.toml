@@ -1,6 +1,6 @@
 [project]
 name = "suggests"
-version = "0.2.0.dev0"
+version = "0.2.0"
 description = "Algorithm auditing tools for search engine autocomplete"
 license = "MIT"
 readme = "README.md"
