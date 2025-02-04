@@ -97,7 +97,8 @@ def get_suggests(
     qry: str,
     source: str = 'bing',
     sesh: Optional[requests.Session] = None,
-    sleep: Optional[float] = None
+    sleep: Optional[float] = None,
+    sesh_headers: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
     """Scrape and parse search engine suggestion data for a query.
     
@@ -111,6 +112,8 @@ def get_suggests(
         Dict[str, Any]: Dictionary containing query metadata and suggestions
     """
     sesh = sesh if sesh else requests.Session()
+    if sesh_headers:
+        sesh.headers.update(sesh_headers)
     
     tree: Dict[str, Any] = {
         'qry': qry,
@@ -130,6 +133,7 @@ def get_suggests_tree(
     max_depth: int = 3,
     save_to: str = '',
     sesh: Optional[requests.Session] = None,
+    sesh_headers: Optional[Dict[str, str]] = None,
     crawl_id: Optional[str] = None,
     sleep: Optional[float] = None
 ) -> List[Dict[str, Any]]:
@@ -148,7 +152,9 @@ def get_suggests_tree(
         List[Dict[str, Any]]: List of suggestion trees with metadata
     """
     sesh = sesh if sesh else requests.Session()
-
+    if sesh_headers:
+        sesh.headers.update(sesh_headers)
+    
     depth = 0
     root_branch = get_suggests(root, source, sesh, sleep)
     root_branch['depth'] = depth
