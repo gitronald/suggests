@@ -1,16 +1,17 @@
 """ Recursively retrieve autocomplete suggestions from Google and Bing.
 """
 
-import time
 import json
+import time
 import urllib
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Union
+
 import requests
 from numpy import random
-from datetime import datetime, timezone
-from typing import Optional, List, Dict, Union, Any
 
-from . import parsing
-from . import logger
+from . import logger, parsing
+
 log = logger.Logger().start()
 
 def sleep_random(x: float = 0.7, y: float = 1.4) -> None:
@@ -33,13 +34,17 @@ def prepare_qry(qry: str) -> str:
     """
     return urllib.parse.quote_plus(qry)
 
-def get_google_url() -> str:
+def get_google_url(sclient: Optional[str] = "psy-ab", hl: Optional[str] = "en") -> str:
     """Get Google autocomplete API URL
     
     Returns:
         str: Base Google autocomplete API URL
     """
-    return 'https://www.google.com/complete/search?sclient=psy-ab&hl=en&q='
+    if not sclient:
+        sclient = "psy-ab"
+    if not hl:
+        hl = "en"
+    return f'https://www.google.com/complete/search?sclient={sclient}&hl={hl}&q='
 
 def get_bing_url(cvid: str = '&cvid=CF23583902D944F1874B7D9E36F452CD') -> str:
     """Get Bing autocomplete API URL
@@ -57,7 +62,9 @@ def requester(
     source: str = 'bing',
     sesh: Optional[requests.Session] = None,
     sleep: Optional[float] = None,
-    allow_zip: bool = False
+    allow_zip: bool = False,
+    sclient: Optional[str] = None, 
+    hl: Optional[str] = None
 ) -> Optional[Union[dict, str]]:
     """Requester with logging and specified user agent
     
@@ -78,7 +85,7 @@ def requester(
 
     sesh = sesh if sesh else requests.Session()
 
-    base = get_bing_url() if source == 'bing' else get_google_url() 
+    base = get_bing_url() if source == 'bing' else get_google_url(sclient, hl)
     url = base + prepare_qry(qry)
 
     time.sleep(sleep) if sleep else sleep_random()
@@ -86,7 +93,7 @@ def requester(
     try:
         response = sesh.get(url, timeout=10)
         if source == 'google':
-            return json.loads(response.content)
+            return json.loads(response.content.decode('latin-1'))
         elif source == 'bing':
             return response.content.decode('utf-8')
     except Exception as e:
@@ -98,7 +105,9 @@ def get_suggests(
     source: str = 'bing',
     sesh: Optional[requests.Session] = None,
     sleep: Optional[float] = None,
-    sesh_headers: Optional[Dict[str, str]] = None
+    sesh_headers: Optional[Dict[str, str]] = None,
+    sclient: Optional[str] = None, 
+    hl: Optional[str] = None
 ) -> Dict[str, Any]:
     """Scrape and parse search engine suggestion data for a query.
     
@@ -119,7 +128,7 @@ def get_suggests(
         'qry': qry,
         'datetime': str(datetime.now(timezone.utc).replace(tzinfo=None)),
         'source': source,
-        'data': requester(qry, source, sesh, sleep)
+        'data': requester(qry, source, sesh, sleep, sclient=sclient, hl=hl)
     }
     
     parser = parsing.parse_bing if source == 'bing' else parsing.parse_google
