@@ -3,7 +3,7 @@
 import datetime
 import json
 
-import pandas as pd
+import polars as pl
 
 import suggests
 
@@ -22,7 +22,7 @@ def main() -> None:
     }
     print(json.dumps(get_suggests_tree_args, indent=2))
     tree = suggests.get_suggests_tree(**get_suggests_tree_args)
-    tree_df = pd.DataFrame(tree)
+    tree_df = pl.DataFrame(tree)
     print(f"\nSuggestion Tree: ({tree_df.shape[0]:,}, {tree_df.shape[1]})")
     print(tree_df.head())
 
