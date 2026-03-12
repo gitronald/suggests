@@ -1,9 +1,10 @@
 """Tests for suggests.parsing module."""
 
-import pandas as pd
+import polars as pl
 import pytest
 
 from suggests.parsing import (
+    add_metanodes,
     add_parent_nodes,
     parse_bing,
     parse_google,
@@ -72,7 +73,7 @@ class TestParseBing:
 class TestToEdgelist:
     def test_basic_conversion(self, sample_tree):
         edges = to_edgelist(sample_tree)
-        assert isinstance(edges, pd.DataFrame)
+        assert isinstance(edges, pl.DataFrame)
         assert "source" in edges.columns
         assert "target" in edges.columns
         assert "rank" in edges.columns
@@ -83,7 +84,7 @@ class TestToEdgelist:
         edges = to_edgelist(sample_tree_with_self_loop)
         # "dog" -> "dog" should be excluded, only "dog" -> "dog toys" remains
         assert len(edges) == 1
-        assert edges.iloc[0]["target"] == "dog toys"
+        assert edges[0, "target"] == "dog toys"
 
     def test_self_loops_included(self, sample_tree_with_self_loop):
         edges = to_edgelist(sample_tree_with_self_loop, self_loops=True)
@@ -92,7 +93,7 @@ class TestToEdgelist:
     def test_no_suggests_at_root(self, sample_tree_no_suggests):
         edges = to_edgelist(sample_tree_no_suggests)
         assert len(edges) == 1
-        assert edges.iloc[0]["target"] is None
+        assert edges[0, "target"] is None
 
     def test_ranks_start_at_one(self, sample_tree):
         edges = to_edgelist(sample_tree)
@@ -113,5 +114,21 @@ class TestAddParentNodes:
     def test_depth_zero_has_no_parent(self, sample_tree):
         edges = to_edgelist(sample_tree)
         result = add_parent_nodes(edges)
-        depth_zero = result[result["depth"] == 0]
-        assert depth_zero["parent"].isna().all()
+        depth_zero = result.filter(pl.col("depth") == 0)
+        assert depth_zero["parent"].is_null().all()
+
+
+class TestAddMetanodes:
+    def test_adds_metanode_columns(self, sample_tree):
+        edges = to_edgelist(sample_tree)
+        edges = add_parent_nodes(edges)
+        result = add_metanodes(edges)
+        assert "source_add" in result.columns
+        assert "target_add" in result.columns
+
+    def test_depth_zero_source_add_equals_source(self, sample_tree):
+        edges = to_edgelist(sample_tree)
+        edges = add_parent_nodes(edges)
+        result = add_metanodes(edges)
+        depth_zero = result.filter(pl.col("depth") == 0)
+        assert depth_zero[0, "source_add"] == depth_zero[0, "source"]

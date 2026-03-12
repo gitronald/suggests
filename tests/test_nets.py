@@ -1,7 +1,7 @@
 """Tests for suggests.nets module."""
 
 import networkx as nx
-import pandas as pd
+import polars as pl
 import pytest
 
 from suggests.nets import (
@@ -52,7 +52,7 @@ class TestNodesToDF:
     def test_returns_dataframe(self, sample_graph):
         set_node_attributes(sample_graph, "dog")
         df = nodes_to_df(sample_graph)
-        assert isinstance(df, pd.DataFrame)
+        assert isinstance(df, pl.DataFrame)
         assert "node" in df.columns
 
 
