@@ -48,18 +48,20 @@ def get_google_url(sclient: Optional[str] = "psy-ab", hl: Optional[str] = "en") 
         sclient = "psy-ab"
     if not hl:
         hl = "en"
-    return f'https://www.google.com/complete/search?sclient={sclient}&hl={hl}&q='
+    params = urllib.parse.urlencode({'sclient': sclient, 'hl': hl, 'q': ''})
+    return f'https://www.google.com/complete/search?{params}'
 
-def get_bing_url(cvid: str = '&cvid=CF23583902D944F1874B7D9E36F452CD') -> str:
+def get_bing_url(cvid: str = 'CF23583902D944F1874B7D9E36F452CD') -> str:
     """Get Bing autocomplete API URL
-    
+
     Args:
         cvid (str): Bing API client ID
-    
+
     Returns:
         str: Base Bing autocomplete API URL
     """
-    return f'http://www.bing.com/AS/Suggestions?&mkt=en-us{cvid}&q='
+    params = urllib.parse.urlencode({'mkt': 'en-us', 'cvid': cvid, 'q': ''})
+    return f'http://www.bing.com/AS/Suggestions?{params}'
 
 def requester(
     qry: str,
