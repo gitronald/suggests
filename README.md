@@ -19,7 +19,13 @@ This package currently supports retrieving suggestions from Google and Bing. A s
 
 ## Installation
 
-Download with pip and git:
+Install with uv:
+
+```bash
+uv add git+https://github.com/gitronald/suggests
+```
+
+Or with pip:
 
 ```bash
 pip install git+https://github.com/gitronald/suggests
@@ -35,11 +41,24 @@ import suggests
 ['geese are evil', 'geese are mean', 'geese are aggressive', 'geese are jerks', 'geese are the worst', 'geese are scary', 'geese are dinosaurs', 'geese are protected', 'geese are annoying', 'geese are monogamous']
 ```
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Use the `hl` parameter for Google (e.g. `'es'`, `'de'`, `'fr'`) to get suggestions in other languages:
 
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+```python
+>>> s = suggests.get_suggests('los gansos son ', source='google', hl='es')
+2026-03-12 11:40:41,677 | 26509 | INFO | suggests | google | los gansos son
+>>> s['suggests']
+['los gansos son territoriales', 'los gansos son monogamos', 'los gansos son patos', 'los gansos son comestibles', 'los gansos son aves']
+```
+
+For Bing, use the `mkt` parameter (e.g. `'es-es'`, `'de-de'`, `'fr-fr'`) to get suggestions in other languages:
+
+```python
+>>> s = suggests.get_suggests('los gansos son ', source='bing', mkt='es-es')
+2026-03-12 11:40:43,764 | 26509 | INFO | suggests | bing | los gansos son
+>>> s['suggests']
+['los gansos son agresivos', 'que son los gansos', 'sonidos de gansos']
+```
+
 
 ## Example
 
@@ -156,3 +175,9 @@ Out[9]:
 Plotted in [Gephi](https://gephi.org/). The size of nodes corresponds to their PageRank, and node colors indicate communities that were determined using Gephi's default community detection algorithm, the Louvain method:
 
 ![Abortion Association Network](img/abortion_plot_pagerank.png?raw=true "Abortion Association Network")
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
