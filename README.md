@@ -41,6 +41,15 @@ import suggests
 ['geese are evil', 'geese are mean', 'geese are aggressive', 'geese are jerks', 'geese are the worst', 'geese are scary', 'geese are dinosaurs', 'geese are protected', 'geese are annoying', 'geese are monogamous']
 ```
 
+Use the `hl` parameter to get suggestions in other languages:
+
+```python
+>>> s = suggests.get_suggests('los gansos son ', source='google', hl='es')
+2026-03-12 11:17:37,039 | 9860 | INFO | suggests | google | los gansos son
+>>> s['suggests']
+['los gansos son territoriales', 'los gansos son monogamos', 'los gansos son patos', 'los gansos son comestibles', 'los gansos son aves']
+```
+
 
 ## Example
 
