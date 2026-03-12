@@ -19,7 +19,13 @@ This package currently supports retrieving suggestions from Google and Bing. A s
 
 ## Installation
 
-Download with pip and git:
+Install with uv:
+
+```bash
+uv add git+https://github.com/gitronald/suggests
+```
+
+Or with pip:
 
 ```bash
 pip install git+https://github.com/gitronald/suggests
