@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import requests
-from numpy import random
+import random
 
 from . import logger, parsing
 
