@@ -1,7 +1,5 @@
 """Demo script for suggests package."""
 
-from __future__ import annotations
-
 import datetime
 import json
 

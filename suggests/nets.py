@@ -1,7 +1,5 @@
 """General network utility functions."""
 
-from __future__ import annotations
-
 import networkx as nx
 import pandas as pd
 

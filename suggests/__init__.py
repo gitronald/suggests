@@ -2,7 +2,13 @@
 
 __version__ = "0.3.1a0"
 
-from .parsing import add_metanodes, add_parent_nodes, parse_bing, parse_google, to_edgelist
+from .parsing import (
+    add_metanodes,
+    add_parent_nodes,
+    parse_bing,
+    parse_google,
+    to_edgelist,
+)
 from .suggests import get_suggests, get_suggests_tree
 
 __all__ = [

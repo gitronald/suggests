@@ -1,7 +1,5 @@
 """Tests for suggests.suggests module."""
 
-from __future__ import annotations
-
 from unittest.mock import patch
 
 from suggests.suggests import (

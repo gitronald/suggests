@@ -1,7 +1,5 @@
 """Tests for suggests.nets module."""
 
-from __future__ import annotations
-
 import networkx as nx
 import pandas as pd
 import pytest

@@ -1,7 +1,5 @@
 """Configure a logger using a dictionary."""
 
-from __future__ import annotations
-
 import logging
 import logging.config
 

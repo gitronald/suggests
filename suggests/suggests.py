@@ -1,7 +1,5 @@
 """Recursively retrieve autocomplete suggestions from Google and Bing."""
 
-from __future__ import annotations
-
 import json
 import time
 import urllib

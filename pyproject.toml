@@ -5,8 +5,8 @@ description = "Algorithm auditing tools for search engine autocomplete"
 license = "MIT"
 readme = "README.md"
 authors = [{ name = "Ronald E. Robertson", email = "rer@acm.org" }]
-keywords = ["suggestions", "autocomplete", "google", "bing"]
-requires-python = ">=3.10"
+keywords = ["suggestions", "autocomplete", "google", "bing", "search engine", "search queries"]
+requires-python = ">=3.11"
 dependencies = [
     "requests>=2.28",
     "pandas>=2.0",
