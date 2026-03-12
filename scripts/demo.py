@@ -1,9 +1,16 @@
-import json
+"""Demo script for suggests package."""
+
+from __future__ import annotations
+
 import datetime
-import suggests
+import json
+
 import pandas as pd
 
-def main():
+import suggests
+
+
+def main() -> None:
     crawl_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     get_suggests_tree_args = {
         'root': 'dog',

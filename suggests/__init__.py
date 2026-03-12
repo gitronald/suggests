@@ -1,3 +1,5 @@
+"""Algorithm auditing tools for search engine autocomplete."""
+
 __version__ = "0.3.1a0"
 
 from .suggests import get_suggests

@@ -1,11 +1,12 @@
-""" Recursively retrieve autocomplete suggestions from Google and Bing.
-"""
+"""Recursively retrieve autocomplete suggestions from Google and Bing."""
+
+from __future__ import annotations
 
 import json
 import time
 import urllib
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import requests
 from numpy import random
@@ -15,47 +16,47 @@ from . import logger, parsing
 log = logger.Logger().start()
 
 def sleep_random(x: float = 0.7, y: float = 1.4) -> None:
-    """Sleep a random time with noise between x and y seconds
+    """Sleep a random time with noise between x and y seconds.
 
     Args:
-        x (float): Minimum sleep time in seconds
-        y (float): Maximum sleep time in seconds
+        x: Minimum sleep time in seconds
+        y: Maximum sleep time in seconds
     """
     time.sleep(random.uniform(x,y))
 
 def prepare_qry(qry: str) -> str:
-    """Prepare query string for URL encoding
+    """Prepare query string for URL encoding.
 
     Args:
-        qry (str): Raw query string
+        qry: Raw query string
 
     Returns:
-        str: URL encoded query string
+        URL encoded query string
     """
     return urllib.parse.quote_plus(qry)
 
 def get_google_url(hl: str = "en", sclient: str = "psy-ab") -> str:
-    """Get Google autocomplete API URL
+    """Get Google autocomplete API URL.
 
     Args:
-        hl (str): Language code (e.g. 'en', 'de', 'fr')
-        sclient (str): Google search client identifier
+        hl: Language code (e.g. 'en', 'de', 'fr')
+        sclient: Google search client identifier
 
     Returns:
-        str: Base Google autocomplete API URL
+        Base Google autocomplete API URL
     """
     params = urllib.parse.urlencode({'sclient': sclient, 'hl': hl, 'q': ''})
     return f'https://www.google.com/complete/search?{params}'
 
 def get_bing_url(mkt: str = "en-us", cvid: str = 'CF23583902D944F1874B7D9E36F452CD') -> str:
-    """Get Bing autocomplete API URL
+    """Get Bing autocomplete API URL.
 
     Args:
-        mkt (str): Market code (e.g. 'en-us', 'de-de', 'es-es')
-        cvid (str): Bing API client ID
+        mkt: Market code (e.g. 'en-us', 'de-de', 'es-es')
+        cvid: Bing API client ID
 
     Returns:
-        str: Base Bing autocomplete API URL
+        Base Bing autocomplete API URL
     """
     params = urllib.parse.urlencode({'mkt': mkt, 'cvid': cvid, 'q': ''})
     return f'http://www.bing.com/AS/Suggestions?{params}'
@@ -63,25 +64,25 @@ def get_bing_url(mkt: str = "en-us", cvid: str = 'CF23583902D944F1874B7D9E36F452
 def requester(
     qry: str,
     source: str = 'bing',
-    sesh: Optional[requests.Session] = None,
-    sleep: Optional[float] = None,
+    sesh: requests.Session | None = None,
+    sleep: float | None = None,
     allow_zip: bool = False,
-    hl: Optional[str] = None,
-    mkt: Optional[str] = None
-) -> Optional[Union[dict, str]]:
+    hl: str | None = None,
+    mkt: str | None = None
+) -> dict | str | None:
     """Requester with logging and specified user agent
 
     Args:
-        qry (str): Search query to submit
-        source (str): Search engine to submit query to, either "bing" or "google"
-        sesh (Optional[requests.Session]): Pass a custom requests session
-        sleep (Optional[float]): Custom sleep duration
-        allow_zip (bool): Enable response content unzipping
-        hl (Optional[str]): Google language code (e.g. 'en', 'de', 'fr')
-        mkt (Optional[str]): Bing market code (e.g. 'en-us', 'de-de', 'es-es')
+        qry: Search query to submit
+        source: Search engine to submit query to, either "bing" or "google"
+        sesh: Pass a custom requests session
+        sleep: Custom sleep duration
+        allow_zip: Enable response content unzipping
+        hl: Google language code (e.g. 'en', 'de', 'fr')
+        mkt: Bing market code (e.g. 'en-us', 'de-de', 'es-es')
 
     Returns:
-        Optional[Union[dict, str]]: JSON response for Google, HTML string for Bing, None on error
+        JSON response for Google, HTML string for Bing, None on error
 
     Raises:
         AssertionError: If source is not 'bing' or 'google'
@@ -111,31 +112,31 @@ def requester(
 def get_suggests(
     qry: str,
     source: str = 'bing',
-    sesh: Optional[requests.Session] = None,
-    sleep: Optional[float] = None,
-    sesh_headers: Optional[Dict[str, str]] = None,
-    hl: Optional[str] = None,
-    mkt: Optional[str] = None
-) -> Dict[str, Any]:
+    sesh: requests.Session | None = None,
+    sleep: float | None = None,
+    sesh_headers: dict[str, str] | None = None,
+    hl: str | None = None,
+    mkt: str | None = None
+) -> dict[str, Any]:
     """Scrape and parse search engine suggestion data for a query.
 
     Args:
-        qry (str): Query to obtain suggestions for
-        source (str): The search engine to submit the query to
-        sesh (Optional[requests.Session]): Session for maintaining connection
-        sleep (Optional[float]): Custom sleep duration
-        sesh_headers (Optional[Dict[str, str]]): Custom session headers
-        hl (Optional[str]): Google language code (e.g. 'en', 'de', 'fr')
-        mkt (Optional[str]): Bing market code (e.g. 'en-us', 'de-de', 'es-es')
+        qry: Query to obtain suggestions for
+        source: The search engine to submit the query to
+        sesh: Session for maintaining connection
+        sleep: Custom sleep duration
+        sesh_headers: Custom session headers
+        hl: Google language code (e.g. 'en', 'de', 'fr')
+        mkt: Bing market code (e.g. 'en-us', 'de-de', 'es-es')
 
     Returns:
-        Dict[str, Any]: Dictionary containing query metadata and suggestions
+        Dictionary containing query metadata and suggestions
     """
     sesh = sesh if sesh else requests.Session()
     if sesh_headers:
         sesh.headers.update(sesh_headers)
 
-    tree: Dict[str, Any] = {
+    tree: dict[str, Any] = {
         'qry': qry,
         'datetime': str(datetime.now(timezone.utc).replace(tzinfo=None)),
         'source': source,
@@ -152,28 +153,28 @@ def get_suggests_tree(
     source: str = 'bing',
     max_depth: int = 3,
     save_to: str = '',
-    sesh: Optional[requests.Session] = None,
-    sesh_headers: Optional[Dict[str, str]] = None,
-    crawl_id: Optional[str] = None,
-    sleep: Optional[float] = None,
-    hl: Optional[str] = None,
-    mkt: Optional[str] = None
-) -> List[Dict[str, Any]]:
+    sesh: requests.Session | None = None,
+    sesh_headers: dict[str, str] | None = None,
+    crawl_id: str | None = None,
+    sleep: float | None = None,
+    hl: str | None = None,
+    mkt: str | None = None
+) -> list[dict[str, Any]]:
     """Retrieve autocomplete suggestions tree for a root query
 
     Args:
-        root (str): Query to obtain a suggestion tree for
-        source (str): The search engine to submit the query to
-        max_depth (int): Maximum breadth first steps from root
-        save_to (str): Optional filepath to append results as json lines
-        sesh (Optional[requests.Session]): Session for maintaining connection
-        crawl_id (Optional[str]): Unique identifier for the crawl session
-        sleep (Optional[float]): Custom sleep duration
-        hl (Optional[str]): Google language code (e.g. 'en', 'de', 'fr')
-        mkt (Optional[str]): Bing market code (e.g. 'en-us', 'de-de', 'es-es')
+        root: Query to obtain a suggestion tree for
+        source: The search engine to submit the query to
+        max_depth: Maximum breadth first steps from root
+        save_to: Optional filepath to append results as json lines
+        sesh: Session for maintaining connection
+        crawl_id: Unique identifier for the crawl session
+        sleep: Custom sleep duration
+        hl: Google language code (e.g. 'en', 'de', 'fr')
+        mkt: Bing market code (e.g. 'en-us', 'de-de', 'es-es')
 
     Returns:
-        List[Dict[str, Any]]: List of suggestion trees with metadata
+        List of suggestion trees with metadata
     """
     sesh = sesh if sesh else requests.Session()
     if sesh_headers:
@@ -190,8 +191,8 @@ def get_suggests_tree(
         outdata = json.dumps(root_branch)
         outfile.write(f'{outdata}\n')
 
-    tree: List[Dict[str, Any]] = [root_branch]
-    all_suggests: set = {root}
+    tree: list[dict[str, Any]] = [root_branch]
+    all_suggests: set[str] = {root}
 
     while depth < max_depth:
         suggests = {d['qry']: d['suggests'] for d in tree if d['depth']==depth}
