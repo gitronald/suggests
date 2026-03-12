@@ -19,7 +19,13 @@ This package currently supports retrieving suggestions from Google and Bing. A s
 
 ## Installation
 
-Download with pip and git:
+Install with uv:
+
+```bash
+uv add git+https://github.com/gitronald/suggests
+```
+
+Or with pip:
 
 ```bash
 pip install git+https://github.com/gitronald/suggests
@@ -35,11 +41,6 @@ import suggests
 ['geese are evil', 'geese are mean', 'geese are aggressive', 'geese are jerks', 'geese are the worst', 'geese are scary', 'geese are dinosaurs', 'geese are protected', 'geese are annoying', 'geese are monogamous']
 ```
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
 
 ## Example
 
@@ -156,3 +157,9 @@ Out[9]:
 Plotted in [Gephi](https://gephi.org/). The size of nodes corresponds to their PageRank, and node colors indicate communities that were determined using Gephi's default community detection algorithm, the Louvain method:
 
 ![Abortion Association Network](img/abortion_plot_pagerank.png?raw=true "Abortion Association Network")
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
