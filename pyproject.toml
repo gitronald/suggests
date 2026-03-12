@@ -20,6 +20,13 @@ homepage = "http://github.com/gitronald/suggests"
 [project.scripts]
 demo = 'scripts.demo:main'
 
+[dependency-groups]
+dev = [
+    "pytest>=6.2",
+    "pytest-cov>=4.0",
+    "ruff>=0.15.4",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

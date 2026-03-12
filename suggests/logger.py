@@ -6,12 +6,9 @@ import logging
 import logging.config
 
 # Formatters: change what gets logged
-minimal = '%(message)s'
-detailed = '%(asctime)s | %(process)d | %(levelname)s | %(name)s | %(message)s '
-formatters = {
-    'minimal': {'format': minimal},
-    'detailed': {'format': detailed}
-}
+minimal = "%(message)s"
+detailed = "%(asctime)s | %(process)d | %(levelname)s | %(name)s | %(message)s "
+formatters = {"minimal": {"format": minimal}, "detailed": {"format": detailed}}
 
 
 class Logger:
@@ -28,60 +25,62 @@ class Logger:
 
     def __init__(
         self,
-        file_name: str = '',
-        file_format: str = 'detailed',
-        file_mode: str = 'w',
+        file_name: str = "",
+        file_format: str = "detailed",
+        file_mode: str = "w",
         console: bool = True,
-        console_format: str = 'detailed',
-        console_level: str = 'DEBUG',
+        console_format: str = "detailed",
+        console_level: str = "DEBUG",
     ) -> None:
         # Handlers: change file and console logging details
         handlers: dict[str, dict] = {}
         if console:
-            assert console_format in formatters, \
-                f'Must select formatting type from {list(formatters.keys())}'
+            assert console_format in formatters, (
+                f"Must select formatting type from {list(formatters.keys())}"
+            )
 
-            handlers['console_handle'] = {
-                'class': 'logging.StreamHandler',
-                'level': 'DEBUG',
-                'formatter': console_format,
+            handlers["console_handle"] = {
+                "class": "logging.StreamHandler",
+                "level": "DEBUG",
+                "formatter": console_format,
             }
 
         if file_name:
-            assert isinstance(file_name, str), 'Must provide name for file logging'
-            assert file_format in formatters, \
-                f'Must select formatting type from {list(formatters.keys())}'
+            assert isinstance(file_name, str), "Must provide name for file logging"
+            assert file_format in formatters, (
+                f"Must select formatting type from {list(formatters.keys())}"
+            )
 
-            handlers['file_handle'] = {
-                'class': 'logging.FileHandler',
-                'level': 'INFO',
-                'formatter': file_format,
-                'filename': file_name,
-                'mode': file_mode
+            handlers["file_handle"] = {
+                "class": "logging.FileHandler",
+                "level": "INFO",
+                "formatter": file_format,
+                "filename": file_name,
+                "mode": file_mode,
             }
 
         # Loggers: change logging options for root and other packages
         loggers = {
             # Package logger (not root)
-            'suggests': {
-                'handlers': list(handlers.keys()),
-                'level': 'DEBUG',
-                'propagate': False
+            "suggests": {
+                "handlers": list(handlers.keys()),
+                "level": "DEBUG",
+                "propagate": False,
             },
             # External loggers
-            'requests': {'level': 'WARNING'},
-            'urllib3': {'level': 'WARNING'},
-            'matplotlib': {'level': 'WARNING'},
-            'chardet.charsetprober': {'level': 'INFO'},
-            'parso': {'level': 'INFO'}  # Fix for ipython autocomplete bug
+            "requests": {"level": "WARNING"},
+            "urllib3": {"level": "WARNING"},
+            "matplotlib": {"level": "WARNING"},
+            "chardet.charsetprober": {"level": "INFO"},
+            "parso": {"level": "INFO"},  # Fix for ipython autocomplete bug
         }
 
         self.log_config = {
-            'version': 1,
-            'disable_existing_loggers': False,
-            'formatters': formatters,
-            'handlers': handlers,
-            'loggers': loggers
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": formatters,
+            "handlers": handlers,
+            "loggers": loggers,
         }
 
     def start(self, name: str = "suggests") -> logging.Logger:
