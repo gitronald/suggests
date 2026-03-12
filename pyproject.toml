@@ -9,8 +9,7 @@ keywords = ["suggestions", "autocomplete", "google", "bing", "search engine", "s
 requires-python = ">=3.11"
 dependencies = [
     "requests>=2.28",
-    "pandas>=2.0",
-    "numpy>=2.0",
+    "polars>=1.0",
     "beautifulsoup4>=4.11",
 ]
 
