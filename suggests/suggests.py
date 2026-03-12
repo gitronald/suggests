@@ -16,19 +16,19 @@ log = logger.Logger().start()
 
 def sleep_random(x: float = 0.7, y: float = 1.4) -> None:
     """Sleep a random time with noise between x and y seconds
-    
+
     Args:
         x (float): Minimum sleep time in seconds
         y (float): Maximum sleep time in seconds
     """
     time.sleep(random.uniform(x,y))
-    
+
 def prepare_qry(qry: str) -> str:
     """Prepare query string for URL encoding
-    
+
     Args:
         qry (str): Raw query string
-    
+
     Returns:
         str: URL encoded query string
     """
@@ -38,7 +38,7 @@ def get_google_url(hl: str = "en", sclient: str = "psy-ab") -> str:
     """Get Google autocomplete API URL
 
     Args:
-        hl (str): Language code for results (e.g. 'en', 'de', 'fr')
+        hl (str): Language code (e.g. 'en', 'de', 'fr')
         sclient (str): Google search client identifier
 
     Returns:
@@ -47,16 +47,17 @@ def get_google_url(hl: str = "en", sclient: str = "psy-ab") -> str:
     params = urllib.parse.urlencode({'sclient': sclient, 'hl': hl, 'q': ''})
     return f'https://www.google.com/complete/search?{params}'
 
-def get_bing_url(cvid: str = 'CF23583902D944F1874B7D9E36F452CD') -> str:
+def get_bing_url(mkt: str = "en-us", cvid: str = 'CF23583902D944F1874B7D9E36F452CD') -> str:
     """Get Bing autocomplete API URL
 
     Args:
+        mkt (str): Market code (e.g. 'en-us', 'de-de', 'es-es')
         cvid (str): Bing API client ID
 
     Returns:
         str: Base Bing autocomplete API URL
     """
-    params = urllib.parse.urlencode({'mkt': 'en-us', 'cvid': cvid, 'q': ''})
+    params = urllib.parse.urlencode({'mkt': mkt, 'cvid': cvid, 'q': ''})
     return f'http://www.bing.com/AS/Suggestions?{params}'
 
 def requester(
@@ -65,7 +66,8 @@ def requester(
     sesh: Optional[requests.Session] = None,
     sleep: Optional[float] = None,
     allow_zip: bool = False,
-    hl: str = "en",
+    hl: Optional[str] = None,
+    mkt: Optional[str] = None,
     sclient: str = "psy-ab"
 ) -> Optional[Union[dict, str]]:
     """Requester with logging and specified user agent
@@ -76,7 +78,8 @@ def requester(
         sesh (Optional[requests.Session]): Pass a custom requests session
         sleep (Optional[float]): Custom sleep duration
         allow_zip (bool): Enable response content unzipping
-        hl (str): Language code for Google results (e.g. 'en', 'de', 'fr')
+        hl (Optional[str]): Google language code (e.g. 'en', 'de', 'fr')
+        mkt (Optional[str]): Bing market code (e.g. 'en-us', 'de-de', 'es-es')
         sclient (str): Google search client identifier
 
     Returns:
@@ -89,7 +92,10 @@ def requester(
 
     sesh = sesh if sesh else requests.Session()
 
-    base = get_bing_url() if source == 'bing' else get_google_url(hl, sclient)
+    if source == 'bing':
+        base = get_bing_url(mkt or 'en-us')
+    else:
+        base = get_google_url(hl or 'en', sclient)
     url = base + prepare_qry(qry)
 
     time.sleep(sleep) if sleep else sleep_random()
@@ -110,7 +116,8 @@ def get_suggests(
     sesh: Optional[requests.Session] = None,
     sleep: Optional[float] = None,
     sesh_headers: Optional[Dict[str, str]] = None,
-    hl: str = "en",
+    hl: Optional[str] = None,
+    mkt: Optional[str] = None,
     sclient: str = "psy-ab"
 ) -> Dict[str, Any]:
     """Scrape and parse search engine suggestion data for a query.
@@ -121,7 +128,8 @@ def get_suggests(
         sesh (Optional[requests.Session]): Session for maintaining connection
         sleep (Optional[float]): Custom sleep duration
         sesh_headers (Optional[Dict[str, str]]): Custom session headers
-        hl (str): Language code for Google results (e.g. 'en', 'de', 'fr')
+        hl (Optional[str]): Google language code (e.g. 'en', 'de', 'fr')
+        mkt (Optional[str]): Bing market code (e.g. 'en-us', 'de-de', 'es-es')
         sclient (str): Google search client identifier
 
     Returns:
@@ -130,14 +138,14 @@ def get_suggests(
     sesh = sesh if sesh else requests.Session()
     if sesh_headers:
         sesh.headers.update(sesh_headers)
-    
+
     tree: Dict[str, Any] = {
         'qry': qry,
         'datetime': str(datetime.now(timezone.utc).replace(tzinfo=None)),
         'source': source,
-        'data': requester(qry, source, sesh, sleep, hl=hl, sclient=sclient)
+        'data': requester(qry, source, sesh, sleep, hl=hl, mkt=mkt, sclient=sclient)
     }
-    
+
     parser = parsing.parse_bing if source == 'bing' else parsing.parse_google
     parsed = parser(tree['data'], qry)
     tree.update(parsed)
@@ -152,7 +160,8 @@ def get_suggests_tree(
     sesh_headers: Optional[Dict[str, str]] = None,
     crawl_id: Optional[str] = None,
     sleep: Optional[float] = None,
-    hl: str = "en",
+    hl: Optional[str] = None,
+    mkt: Optional[str] = None,
     sclient: str = "psy-ab"
 ) -> List[Dict[str, Any]]:
     """Retrieve autocomplete suggestions tree for a root query
@@ -165,7 +174,8 @@ def get_suggests_tree(
         sesh (Optional[requests.Session]): Session for maintaining connection
         crawl_id (Optional[str]): Unique identifier for the crawl session
         sleep (Optional[float]): Custom sleep duration
-        hl (str): Language code for Google results (e.g. 'en', 'de', 'fr')
+        hl (Optional[str]): Google language code (e.g. 'en', 'de', 'fr')
+        mkt (Optional[str]): Bing market code (e.g. 'en-us', 'de-de', 'es-es')
         sclient (str): Google search client identifier
 
     Returns:
@@ -174,9 +184,9 @@ def get_suggests_tree(
     sesh = sesh if sesh else requests.Session()
     if sesh_headers:
         sesh.headers.update(sesh_headers)
-    
+
     depth = 0
-    root_branch = get_suggests(root, source, sesh, sleep, hl=hl, sclient=sclient)
+    root_branch = get_suggests(root, source, sesh, sleep, hl=hl, mkt=mkt, sclient=sclient)
     root_branch['depth'] = depth
     root_branch['root'] = root
     root_branch['crawl_id'] = crawl_id
@@ -192,20 +202,20 @@ def get_suggests_tree(
     while depth < max_depth:
         suggests = {d['qry']: d['suggests'] for d in tree if d['depth']==depth}
         depth += 1
-        
+
         for qry, suggest_list in suggests.items():
             if suggest_list:
                 for s in suggest_list:
                     if s not in all_suggests: # Don't crawl self-loops or duplicates
-                        branches = get_suggests(s, source, sesh, sleep, hl=hl, sclient=sclient)
+                        branches = get_suggests(s, source, sesh, sleep, hl=hl, mkt=mkt, sclient=sclient)
                         branches['depth'] = depth
                         branches['root'] = root
                         branches['crawl_id'] = crawl_id
-                        if save_to: 
+                        if save_to:
                             outfile.write(f'{json.dumps(branches)}\n')
-                        tree.append(branches)            
+                        tree.append(branches)
                         all_suggests.add(s)
-                        
+
     if save_to:
         outfile.close()
     return tree
