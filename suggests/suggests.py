@@ -99,9 +99,9 @@ def requester(
     try:
         response = sesh.get(url, timeout=10)
         if source == 'google':
-            return json.loads(response.content.decode('latin-1'))
+            return json.loads(response.text)
         elif source == 'bing':
-            return response.content.decode('utf-8')
+            return response.text
     except Exception as e:
         log.exception('ERROR SCRAPING: request[%s]', response.status_code)
         return None
