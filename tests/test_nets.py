@@ -8,6 +8,7 @@ from suggests.nets import (
     find_unreachable_nodes,
     get_root_component,
     nodes_to_df,
+    plot_network,
     set_node_attributes,
 )
 
@@ -78,3 +79,31 @@ class TestFindUnreachableNodes:
     def test_no_unreachable_in_connected(self, sample_graph):
         unreachable = find_unreachable_nodes(sample_graph, "dog")
         assert len(unreachable) == 0
+
+
+@pytest.fixture
+def sample_edges():
+    """Create a small edge list DataFrame for testing."""
+    return pl.DataFrame(
+        {
+            "source": ["dog", "dog", "dog toys"],
+            "target": ["dog toys", "dog food", "dog toys amazon"],
+        }
+    )
+
+
+class TestPlotNetwork:
+    def test_returns_figure(self, sample_edges):
+        import matplotlib.pyplot as plt
+
+        fig = plot_network(sample_edges, "dog")
+        assert isinstance(fig, plt.Figure)
+        plt.close(fig)
+
+    def test_save_to_file(self, sample_edges, tmp_path):
+        import matplotlib.pyplot as plt
+
+        path = str(tmp_path / "test_plot.png")
+        fig = plot_network(sample_edges, "dog", save_to=path)
+        assert (tmp_path / "test_plot.png").exists()
+        plt.close(fig)
