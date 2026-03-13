@@ -1,7 +1,7 @@
 """General network utility functions."""
 
 import networkx as nx
-import pandas as pd
+import polars as pl
 
 
 def set_node_attributes(g: nx.DiGraph, root: str) -> None:
@@ -32,7 +32,7 @@ def set_edge_attributes(g: nx.DiGraph) -> None:
     set_attr(g, "betweenness_centrality", nx.edge_betweenness_centrality(g))
 
 
-def nodes_to_df(g: nx.DiGraph) -> pd.DataFrame:
+def nodes_to_df(g: nx.DiGraph) -> pl.DataFrame:
     """Convert nodes dictionary to DataFrame with node attributes as columns.
 
     Args:
@@ -41,8 +41,8 @@ def nodes_to_df(g: nx.DiGraph) -> pd.DataFrame:
     Returns:
         DataFrame with columns for node name and each attribute
     """
-    node_df = pd.Series(dict(g.nodes())).apply(pd.Series)
-    return node_df.reset_index().rename(columns={"index": "node"})
+    records = [{"node": node, **attrs} for node, attrs in g.nodes(data=True)]
+    return pl.DataFrame(records)
 
 
 def get_root_component(g: nx.DiGraph, root: str) -> nx.DiGraph | None:

@@ -5,7 +5,7 @@ import re
 import urllib.parse
 from collections import OrderedDict
 
-import pandas as pd
+import polars as pl
 from bs4 import BeautifulSoup
 
 from . import logger
@@ -13,21 +13,32 @@ from . import logger
 log = logger.Logger().start(__name__)
 
 
-def get_source_target_columns(edges: pd.DataFrame) -> pd.DataFrame:
+def get_source_target_columns(edges: pl.DataFrame) -> pl.DataFrame:
     """Extract source and target columns from edge tuples.
 
     Args:
-        edges: DataFrame with an 'edge' column of (source, target) tuples
+        edges: DataFrame with an 'edge' column of string tuple representations
 
     Returns:
         DataFrame with source and target columns appended
     """
-    edge_details = edges.edge.apply(pd.Series)
-    edge_details.columns = ["source", "target"]
-    return pd.concat([edges, edge_details], axis=1)
+    edge_details = (
+        edges.select(
+            pl.col("edge")
+            .str.strip_chars("()")
+            .str.splitn(", ", 2)
+            .struct.rename_fields(["source", "target"])
+        )
+        .unnest("edge")
+        .with_columns(
+            pl.col("source").str.strip_chars("'\""),
+            pl.col("target").str.strip_chars("'\""),
+        )
+    )
+    return pl.concat([edges, edge_details], how="horizontal")
 
 
-def parse_raw_data(raw_data: pd.DataFrame, source: str) -> pd.DataFrame:
+def parse_raw_data(raw_data: pl.DataFrame, source: str) -> pl.DataFrame:
     """Parse raw aggregated data into edge lists.
 
     Args:
@@ -38,10 +49,12 @@ def parse_raw_data(raw_data: pd.DataFrame, source: str) -> pd.DataFrame:
         DataFrame with parsed suggestion columns appended
     """
     parser = parse_google if source == "google" else parse_bing
-    return pd.concat([raw_data, raw_data.data.apply(parser).apply(pd.Series)], axis=1)
+    parsed = [parser(row) for row in raw_data["data"].to_list()]
+    parsed_df = pl.DataFrame(parsed)
+    return pl.concat([raw_data, parsed_df], how="horizontal")
 
 
-def get_edges(data: pd.DataFrame) -> pd.DataFrame:
+def get_edges(data: pl.DataFrame) -> pl.DataFrame:
     """Parse raw data grouped by source and convert to edge lists.
 
     Args:
@@ -50,8 +63,11 @@ def get_edges(data: pd.DataFrame) -> pd.DataFrame:
     Returns:
         Combined edge list DataFrame
     """
-    clean_data = [parse_raw_data(df, k) for k, df in data.groupby("source")]
-    return pd.concat([to_edgelist(df) for df in clean_data])
+    clean_data = [
+        parse_raw_data(group_df, source_name)
+        for source_name, group_df in data.group_by("source", maintain_order=True)
+    ]
+    return pl.concat([to_edgelist(df.to_dicts()) for df in clean_data])
 
 
 def strip_html(string: str) -> str:
@@ -132,7 +148,7 @@ def parse_bing(raw_html: str, qry: str = "") -> dict[str, list]:
     return parsed
 
 
-def to_edgelist(tree: list[dict], self_loops: bool = False) -> pd.DataFrame:
+def to_edgelist(tree: list[dict], self_loops: bool = False) -> pl.DataFrame:
     """Convert suggestions tree to an edge list DataFrame.
 
     Args:
@@ -156,7 +172,7 @@ def to_edgelist(tree: list[dict], self_loops: bool = False) -> pd.DataFrame:
                 edge = OrderedDict(
                     [
                         ("root", row["root"]),
-                        ("edge", (row["qry"], s)),
+                        ("edge", str((row["qry"], s))),
                         ("source", row["qry"]),
                         ("target", html.unescape(s)),
                         ("rank", rank + 1),
@@ -182,11 +198,11 @@ def to_edgelist(tree: list[dict], self_loops: bool = False) -> pd.DataFrame:
                 )
                 edge_list.append(no_edges)
 
-    edge_df = pd.DataFrame(edge_list)
+    edge_df = pl.DataFrame(edge_list)
     return edge_df
 
 
-def add_parent_nodes(edges: pd.DataFrame) -> pd.DataFrame:
+def add_parent_nodes(edges: pl.DataFrame) -> pl.DataFrame:
     """Add parent and grandparent node columns to an edge list.
 
     Args:
@@ -195,80 +211,96 @@ def add_parent_nodes(edges: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with 'parent' and 'grandparent' columns added
     """
-    edges_original = edges.copy()
+    edges_original = edges.clone()
 
     # Get parent node
-    parent = edges.rename(columns={"source": "parent", "target": "source"})
-    parent["depth"] = parent["depth"] + 1
-    parent = parent[["root", "parent", "source", "depth", "search_engine"]]
-    edges = edges.merge(
-        parent, on=["root", "source", "depth", "search_engine"], how="left"
+    parent = edges.select(
+        "root",
+        pl.col("source").alias("parent"),
+        pl.col("target").alias("source"),
+        (pl.col("depth") + 1).alias("depth"),
+        "search_engine",
+    )
+    edges = edges.join(
+        parent,
+        on=["root", "source", "depth", "search_engine"],
+        how="left",
     )
 
     # Get grandparent node
-    grandparent = edges.rename(
-        columns={"parent": "grandparent", "source": "parent", "target": "source"}
+    grandparent = edges.select(
+        "root",
+        pl.col("parent").alias("grandparent"),
+        pl.col("source").alias("parent"),
+        pl.col("target").alias("source"),
+        (pl.col("depth") + 1).alias("depth"),
+        "search_engine",
     )
-    grandparent["depth"] = grandparent["depth"] + 1
-    grandparent = grandparent[
-        ["root", "grandparent", "parent", "source", "depth", "search_engine"]
-    ]
-    edges = edges.merge(
+    edges = edges.join(
         grandparent,
         on=["root", "parent", "source", "depth", "search_engine"],
         how="left",
     )
 
     # Resolve merge points
-    gb = edges.groupby("edge")
-    merged_parents = pd.DataFrame(
-        {
-            "grandparent": gb.grandparent.apply(
-                lambda col: col.str.cat(sep=" ") if col.any() else None
-            ),
-            "parent": gb.parent.apply(
-                lambda col: col.str.cat(sep=" ") if col.any() else None
-            ),
-        }
-    ).reset_index()
-    edges = edges_original.merge(merged_parents, on="edge", how="left")
-    return edges
+    merged_parents = edges.group_by("edge", maintain_order=True).agg(
+        pl.when(pl.col("grandparent").is_not_null().any())
+        .then(pl.col("grandparent").drop_nulls().first())
+        .otherwise(pl.lit(None))
+        .first()
+        .alias("grandparent"),
+        pl.when(pl.col("parent").is_not_null().any())
+        .then(pl.col("parent").drop_nulls().first())
+        .otherwise(pl.lit(None))
+        .first()
+        .alias("parent"),
+    )
+    return edges_original.join(merged_parents, on="edge", how="left")
 
 
-def add_metanodes(row: pd.Series) -> pd.Series:
+def _compute_metanode(row: dict) -> dict:
+    """Compute source_add and target_add for a single row."""
+    grandparent = [] if row["grandparent"] is None else row["grandparent"].split(" ")
+    parent = [] if row["parent"] is None else row["parent"].split(" ")
+
+    source = row["source"].split(" ")
+    target = row["target"].split(" ")
+
+    source_add = [i for i in source if i not in set(parent)]
+    target_add = [i for i in target if i not in set(source)]
+
+    parent_add = [i for i in parent if i not in set(grandparent)]
+
+    if not source_add:  # information removed
+        source_add = parent_add
+    if not target_add:
+        print(f"circle back: {source_add}")
+        target_add = source_add
+
+    return {
+        "source_add": " ".join(source_add) if source_add else None,
+        "target_add": " ".join(target_add) if target_add else None,
+    }
+
+
+def add_metanodes(edges: pl.DataFrame) -> pl.DataFrame:
     """Compute association metanodes by diffing parent/grandparent tokens.
 
     Adds 'source_add' and 'target_add' columns representing the new
     information contributed at each step in the suggestion tree.
 
     Args:
-        row: A single row from an edge list with parent/grandparent columns
+        edges: Edge list DataFrame with parent/grandparent columns
 
     Returns:
-        Row with 'source_add' and 'target_add' columns added
+        DataFrame with 'source_add' and 'target_add' columns added
     """
-    # Get memory from two steps back
-    grandparent = list() if row.isna()["grandparent"] else row["grandparent"].split(" ")
-    parent = list() if row.isna()["parent"] else row["parent"].split(" ")
-
-    # Set current row source and target nodes
-    source = row["source"].split(" ")
-    target = row["target"].split(" ")
-
-    # Calculate differences
-    source_add = [i for i in source if i not in set(parent)]
-    target_add = [i for i in target if i not in set(source)]
-
-    # Track difference in previous step
-    parent_add = [i for i in parent if i not in set(grandparent)]
-
-    if not source_add:  # information removed
-        source_add = parent_add
-    # If target adds nothing, circle back
-    if not target_add:
-        print(f"circle back: {source_add}")
-        target_add = source_add
-
-    row["source_add"] = " ".join(source_add)
-    row["target_add"] = " ".join(target_add)
-    return row
+    meta = (
+        edges.select(
+            pl.struct(["source", "target", "parent", "grandparent"])
+            .map_elements(_compute_metanode, return_dtype=pl.Struct({"source_add": pl.String, "target_add": pl.String}))
+            .alias("_meta")
+        )
+        .unnest("_meta")
+    )
+    return pl.concat([edges, meta], how="horizontal")

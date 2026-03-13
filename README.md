@@ -155,7 +155,7 @@ Reduce to new information obtained in suggestions. E.g. `abortion -> abortion la
 
 ```py
 In [5]: edges = suggests.add_parent_nodes(edges)
-In [6]: edges = edges.apply(suggests.add_metanodes, axis=1)
+In [6]: edges = suggests.add_metanodes(edges)
 In [7]: show_cols = ['source','target','grandparent','parent','source_add','target_add']
 In [8]: edges[show_cols].head()
 Out[9]:
