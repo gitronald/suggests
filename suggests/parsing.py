@@ -245,12 +245,12 @@ def add_parent_nodes(edges: pl.DataFrame) -> pl.DataFrame:
     # Resolve merge points
     merged_parents = edges.group_by("edge", maintain_order=True).agg(
         pl.when(pl.col("grandparent").is_not_null().any())
-        .then(pl.col("grandparent").drop_nulls().str.concat(" "))
+        .then(pl.col("grandparent").drop_nulls().str.join(" "))
         .otherwise(pl.lit(None))
         .first()
         .alias("grandparent"),
         pl.when(pl.col("parent").is_not_null().any())
-        .then(pl.col("parent").drop_nulls().str.concat(" "))
+        .then(pl.col("parent").drop_nulls().str.join(" "))
         .otherwise(pl.lit(None))
         .first()
         .alias("parent"),
