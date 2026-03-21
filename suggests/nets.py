@@ -88,6 +88,8 @@ def plot_network(
     layout: str = "fr",
     size_scale: float = 500,
     label_quantile: float = 0.99,
+    label_alpha: float = 1.0,
+    spacing: float = 1.0,
     seed: int = 42,
     figsize: tuple[int, int] = (14, 14),
     font_size: float = 1,
@@ -109,6 +111,8 @@ def plot_network(
             'drl' for DrL/distributed recursive layout)
         size_scale: Multiplier for degree-based node sizes
         label_quantile: PageRank quantile threshold for showing labels (0-1)
+        label_alpha: Opacity for node labels (0-1)
+        spacing: Multiplier for layout coordinates to increase node separation
         seed: Random seed for layout and community detection
         figsize: Figure dimensions (width, height)
         font_size: Base label font size (scales with degree)
@@ -175,7 +179,10 @@ def plot_network(
     else:
         ig_layout = ig_graph.layout_fruchterman_reingold()
 
-    pos = {node_list[i]: (ig_layout[i][0], ig_layout[i][1]) for i in range(len(node_list))}
+    pos = {
+        node_list[i]: (ig_layout[i][0] * spacing, ig_layout[i][1] * spacing)
+        for i in range(len(node_list))
+    }
 
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -207,6 +214,7 @@ def plot_network(
             t = ax.text(
                 x, y, labels[node],
                 fontsize=size, fontweight="bold", ha="center", va="center",
+                alpha=label_alpha,
             )
             texts.append(t)
 
