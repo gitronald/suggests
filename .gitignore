@@ -1,4 +1,6 @@
 *__pycache__
+.claude
+.coverage
 .venv
 archive
 build
