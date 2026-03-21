@@ -111,9 +111,12 @@ def parse_google(json_data: list, qry: str = "") -> dict[str, list]:
 
 def parse_bing_qry(raw_html: str, qry: str = "") -> str | None:
     """Recover query from Bing response HTML."""
-    url = BeautifulSoup(raw_html).find("li")["url"]
+    li = BeautifulSoup(raw_html).find("li")
+    if li is None:
+        return None
+    url = li.get("url")
     if url:
-        return str(urllib.parse.parse_qs(urllib.parse.urlparse().query)["pq"][0])
+        return str(urllib.parse.parse_qs(urllib.parse.urlparse(url).query)["pq"][0])
     else:
         return None
 

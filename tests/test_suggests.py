@@ -7,6 +7,7 @@ from suggests.suggests import (
     get_google_url,
     get_suggests,
     prepare_qry,
+    requester,
     sleep_random,
 )
 
@@ -56,6 +57,17 @@ class TestSleepRandom:
         mock_sleep.assert_called_once()
         sleep_time = mock_sleep.call_args[0][0]
         assert 0.1 <= sleep_time <= 0.2
+
+
+class TestRequester:
+    @patch("suggests.suggests.sleep_random")
+    def test_returns_none_on_connection_error(self, mock_sleep):
+        from unittest.mock import MagicMock
+
+        sesh = MagicMock()
+        sesh.get.side_effect = ConnectionError("connection refused")
+        result = requester("test", source="google", sesh=sesh, sleep=0)
+        assert result is None
 
 
 class TestGetSuggests:

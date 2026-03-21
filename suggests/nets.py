@@ -34,7 +34,7 @@ def set_edge_attributes(g: nx.DiGraph) -> None:
         g: Directed graph to add edge attributes to
     """
     set_attr = nx.set_edge_attributes
-    set_attr(g, "betweenness_centrality", nx.edge_betweenness_centrality(g))
+    set_attr(g, nx.edge_betweenness_centrality(g), "betweenness_centrality")
 
 
 def nodes_to_df(g: nx.DiGraph) -> pl.DataFrame:

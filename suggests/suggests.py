@@ -104,6 +104,7 @@ def requester(
 
     time.sleep(sleep) if sleep else sleep_random()
     log.info("%s | %s", "%s" % source, qry)
+    response = None
     try:
         response = sesh.get(url, timeout=10)
         if source == "google":
@@ -111,7 +112,8 @@ def requester(
         elif source == "bing":
             return response.text
     except Exception:
-        log.exception("ERROR SCRAPING: request[%s]", response.status_code)
+        status = response.status_code if response is not None else "no response"
+        log.exception("ERROR SCRAPING: request[%s]", status)
         return None
 
 
@@ -193,31 +195,32 @@ def get_suggests_tree(
     root_branch["root"] = root
     root_branch["crawl_id"] = crawl_id
 
-    if save_to:
-        outfile = open(save_to, "a+")
-        outdata = json.dumps(root_branch)
-        outfile.write(f"{outdata}\n")
+    outfile = open(save_to, "a+") if save_to else None
+    try:
+        if outfile:
+            outdata = json.dumps(root_branch)
+            outfile.write(f"{outdata}\n")
 
-    tree: list[dict[str, Any]] = [root_branch]
-    all_suggests: set[str] = {root}
+        tree: list[dict[str, Any]] = [root_branch]
+        all_suggests: set[str] = {root}
 
-    while depth < max_depth:
-        suggests = {d["qry"]: d["suggests"] for d in tree if d["depth"] == depth}
-        depth += 1
+        while depth < max_depth:
+            suggests = {d["qry"]: d["suggests"] for d in tree if d["depth"] == depth}
+            depth += 1
 
-        for qry, suggest_list in suggests.items():
-            if suggest_list:
-                for s in suggest_list:
-                    if s not in all_suggests:  # Don't crawl self-loops or duplicates
-                        branches = get_suggests(s, source, sesh, sleep, hl=hl, mkt=mkt)
-                        branches["depth"] = depth
-                        branches["root"] = root
-                        branches["crawl_id"] = crawl_id
-                        if save_to:
-                            outfile.write(f"{json.dumps(branches)}\n")
-                        tree.append(branches)
-                        all_suggests.add(s)
-
-    if save_to:
-        outfile.close()
+            for qry, suggest_list in suggests.items():
+                if suggest_list:
+                    for s in suggest_list:
+                        if s not in all_suggests:  # Don't crawl self-loops or duplicates
+                            branches = get_suggests(s, source, sesh, sleep, hl=hl, mkt=mkt)
+                            branches["depth"] = depth
+                            branches["root"] = root
+                            branches["crawl_id"] = crawl_id
+                            if outfile:
+                                outfile.write(f"{json.dumps(branches)}\n")
+                            tree.append(branches)
+                            all_suggests.add(s)
+    finally:
+        if outfile:
+            outfile.close()
     return tree
