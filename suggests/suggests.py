@@ -104,6 +104,7 @@ def requester(
 
     time.sleep(sleep) if sleep else sleep_random()
     log.info("%s | %s", "%s" % source, qry)
+    response = None
     try:
         response = sesh.get(url, timeout=10)
         if source == "google":
@@ -111,7 +112,8 @@ def requester(
         elif source == "bing":
             return response.text
     except Exception:
-        log.exception("ERROR SCRAPING: request[%s]", response.status_code)
+        status = response.status_code if response is not None else "N/A"
+        log.exception("ERROR SCRAPING: request[%s]", status)
         return None
 
 
