@@ -1,6 +1,6 @@
 """Algorithm auditing tools for search engine autocomplete."""
 
-__version__ = "0.3.1a1"
+__version__ = "0.3.1"
 
 from .parsing import (
     add_metanodes,
