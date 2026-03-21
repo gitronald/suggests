@@ -22,7 +22,7 @@ def main() -> None:
     }
     print(json.dumps(get_suggests_tree_args, indent=2))
     tree = suggests.get_suggests_tree(**get_suggests_tree_args)
-    tree_df = pl.DataFrame(tree)
+    tree_df = pl.DataFrame(tree, strict=False)
     print(f"\nSuggestion Tree: ({tree_df.shape[0]:,}, {tree_df.shape[1]})")
     print(tree_df.head())
 
