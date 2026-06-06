@@ -272,3 +272,100 @@ whether to fix-and-keep or remove.
 - Item 3: is `plot_abortion_tree` a shipped console command or a dev-only
   script?
 - Item 6: promote the unused utilities to public API, or delete them?
+
+---
+
+## Item 8: Behavior-preserving optimizations (added 2026-06-06) ⚡
+
+Efficiency review with the constraint: **no new dependencies (no cost) and no
+functionality change.** Findings ranked by real-world payoff, not theoretical
+FLOPs.
+
+### Framing — where optimization actually matters
+
+The codebase has two paths with opposite cost profiles:
+
+- **Scrape path** (`suggests.py`) is deliberately **I/O-bound**: a ~1s
+  `sleep_random()` per request throttles crawling to avoid blocks. CPU
+  micro-opts here are swamped by sleep + network latency — low value *during a
+  crawl*.
+- **Offline analysis path** (`parsing.py` → `nets.py`) runs on already-collected
+  data (the abortion fixture is **12,112 edges**) with no network and no sleep.
+  This is where CPU shows up — and `test_integration.py::test_full_pipeline_matches_expected`
+  is an **exact-match golden test**, so behavior-preserving rewrites here are
+  *verifiable*, not faith-based.
+
+So `parsing.py` findings are weighted highest.
+
+### High payoff (offline, 12k+ rows, golden-test verifiable)
+
+**8a. `add_metanodes` Python UDF → native Polars** — `parsing.py:301-308`
+`map_elements(_compute_metanode, ...)` runs a pure-Python function once per row
+(12k+ calls, each doing string splits + set builds) — the single largest CPU
+cost in the pipeline. The token diff is expressible with native list expressions
+(`str.split` → `list.set_difference`), running in compiled code.
+**Highest value but the only item with real behavior risk** — gate it on an
+exact match against the golden fixture before/after. If a faithful vectorization
+proves awkward (the case-insensitive logic from item 5 / circle-back fallbacks
+are fiddly), keep the UDF. Do NOT ship a version that changes any fixture row.
+
+**8b. `to_edgelist`: `OrderedDict` row-by-row → columnar build** — `parsing.py:175-205`
+Two safe wins, no behavior change:
+- `OrderedDict` is pointless on Python 3.11+ (dicts are ordered) — use plain
+  `dict`.
+- Better: accumulate parallel column lists and build `pl.DataFrame({...})` once,
+  instead of N dicts → DataFrame. Less allocation, more idiomatic, identical
+  output.
+
+**8c. Redundant double `html.unescape` on `target`** — `parsing.py:181`
+Confirmed empirically: `parse_google`/`parse_bing` already unescape every
+suggestion, then `to_edgelist` unescapes `target` *again* (while leaving
+`source` untouched). Removing the second call drops 12k redundant calls and
+makes `source`/`target` symmetric. Idempotent for normal entities → verify no
+change against the golden fixture. (Borderline correctness improvement too.)
+
+**8d. Drop the unnecessary `.clone()`** — `parsing.py:217`
+Polars never mutates in place and `edges` is only rebound by joins, so
+`edges_original = edges` suffices instead of `edges.clone()`. Removes a copy.
+
+### Modest payoff (scrape path — minor, sleep dominates)
+
+**8e. Fuse `parse_google`'s two passes** — `parsing.py:95-98`
+Builds the suggest list, then rebuilds it applying `suggest_parser`. Combine into
+one comprehension — one list instead of two, identical result.
+
+**8f. Hoist URL base out of the request loop** — `suggests.py:100-103`
+`get_bing_url(...)`/`get_google_url(...)` re-`urlencode` static params on every
+call. Negligible vs the sleep, but trivially computed once.
+
+**8g. `parse_bing` double tree-walk on empty check** — `parsing.py:137-140`
+`if not soup.text:` materializes all text just to test emptiness, then
+`find_all` re-traverses. Check `raw_html` emptiness before building the soup to
+skip both on empty responses.
+
+### Examined and deliberately NOT touched
+
+- **Import cost** — already optimal. Verified `import suggests` pulls only `bs4`
+  + `polars`; matplotlib/igraph/networkx/scipy/numpy stay lazy behind
+  `suggests.nets`. A real strength — do **not** regress it by importing `nets`
+  from `__init__.py`.
+- **Centralities** (`nets.py:19-27`) — betweenness is O(V·E) but it *is* the
+  output; can't cut without changing functionality.
+- **bs4 `html.parser`** — `lxml` would be faster but adds a dependency (= cost).
+- **The `sleep`** — it's the anti-blocking mechanism. Off-limits.
+
+### Not a perf fix — readability/scaling hygiene only
+
+**8h. BFS rescan** — `suggests.py:208`:
+`{d["qry"]: d["suggests"] for d in tree if d["depth"] == depth}` rescans the
+whole accumulated `tree` every depth (O(depth·N)). A frontier list makes it
+O(N), **but** each node costs ~1s of network+sleep, so this is pure noise in
+practice. File as hygiene, not performance — do not over-claim a speedup.
+
+### Optimization implementation order
+
+1. 8d, 8b (OrderedDict→dict), 8e, 8f, 8g — trivial, safe, no fixture risk.
+2. 8c — verify against golden fixture (expected: no diff).
+3. 8b (columnar build) — moderate, no behavior change.
+4. 8a — highest value, gated strictly on golden-fixture exact match; abandon if
+   it can't reproduce output faithfully.
