@@ -369,3 +369,38 @@ practice. File as hygiene, not performance — do not over-claim a speedup.
 3. 8b (columnar build) — moderate, no behavior change.
 4. 8a — highest value, gated strictly on golden-fixture exact match; abandon if
    it can't reproduce output faithfully.
+
+---
+
+## Implementation log
+
+### 2026-06-06 — safe quick-win batch (implemented)
+
+Implemented and verified (48 tests pass incl. the exact-match golden
+integration test; `ruff check` clean):
+
+- **Item 2** — `requester` now uses `if sleep is not None` so `sleep=0` disables
+  throttling instead of falling through to `sleep_random()`
+  (`suggests.py:107-110`). Added two regression tests
+  (`test_sleep_zero_disables_random_sleep`, `test_sleep_none_uses_random_sleep`).
+- **Item 4** — `print("circle back: ...")` → `log.debug("circle back: %s", ...)`
+  (`parsing.py`).
+- **Item 5** — `parse_bing_qry` now passes `"html.parser"` to `BeautifulSoup`
+  (`parsing.py`).
+- **Item 8d** — dropped redundant `edges.clone()` → `edges_original = edges`
+  (`parsing.py`).
+- **Item 8e** — fused `parse_google`'s two list comprehensions into one pass.
+- **Item 8f** — `@functools.lru_cache` on `get_google_url` / `get_bing_url` so
+  the static URL base is built once per unique args instead of every request.
+- **Item 8g** — `bing_parser` drops the redundant `soup.text` double-walk and
+  fuses the `html.unescape` pass; None/empty-input behavior preserved (verified
+  by `test_empty_html`).
+
+### Still deferred (not in this batch)
+
+- **Item 1** — Bing HTTP/HTTPS: needs a networked run (sandbox blocks egress).
+- **Item 3** — scripts → package module: blocked on the dev-vs-shipped decision.
+- **Item 6 / 7** — dead-code removal, type-hint/empty-frame nits, stale TODO.
+- **Item 8a** — native-Polars metanode rewrite (highest value, golden-test gated).
+- **Item 8b** — `to_edgelist` columnar build / `OrderedDict`→`dict`.
+- **Item 8c** — remove redundant double `html.unescape` on `target`.

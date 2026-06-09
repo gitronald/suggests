@@ -93,9 +93,9 @@ def parse_google(json_data: list, qry: str = "") -> dict[str, list]:
 
         qry = json_data[0]
         suggests = [
-            s[0] + " - " + s[3]["b"] if s[1] == 46 else s[0] for s in json_data[1]
+            suggest_parser(s[0] + " - " + s[3]["b"] if s[1] == 46 else s[0])
+            for s in json_data[1]
         ]
-        suggests = [suggest_parser(s) for s in suggests]
         tags = json_data[2]
         return qry, suggests, tags
 
@@ -111,7 +111,7 @@ def parse_google(json_data: list, qry: str = "") -> dict[str, list]:
 
 def parse_bing_qry(raw_html: str, qry: str = "") -> str | None:
     """Recover query from Bing response HTML."""
-    li = BeautifulSoup(raw_html).find("li")
+    li = BeautifulSoup(raw_html, "html.parser").find("li")
     if li is None:
         return None
     url = li.get("url")
@@ -134,12 +134,10 @@ def parse_bing(raw_html: str, qry: str = "") -> dict[str, list]:
 
     def bing_parser(raw_html: str) -> list[str]:
         soup = BeautifulSoup(raw_html, "html.parser")
-        if not soup.text:
-            # No suggestions
-            return []
-        suggests = [div.text for div in soup.find_all("div", {"class": "sa_tm"})]
-        suggests = [html.unescape(s) for s in suggests]
-        return suggests
+        return [
+            html.unescape(div.text)
+            for div in soup.find_all("div", {"class": "sa_tm"})
+        ]
 
     try:
         suggests = bing_parser(raw_html)
@@ -214,7 +212,7 @@ def add_parent_nodes(edges: pl.DataFrame) -> pl.DataFrame:
     Returns:
         DataFrame with 'parent' and 'grandparent' columns added
     """
-    edges_original = edges.clone()
+    edges_original = edges
 
     # Get parent node
     parent = edges.select(
@@ -277,7 +275,7 @@ def _compute_metanode(row: dict) -> dict:
     if not source_add:  # information removed
         source_add = parent_add
     if not target_add:
-        print(f"circle back: {source_add}")
+        log.debug("circle back: %s", source_add)
         target_add = source_add
 
     return {
