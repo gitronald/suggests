@@ -3,7 +3,7 @@
 import html
 import re
 import urllib.parse
-from collections import OrderedDict
+from typing import Any
 
 import polars as pl
 from bs4 import BeautifulSoup
@@ -75,7 +75,7 @@ def strip_html(string: str) -> str:
     return re.sub("<[^<]+?>", "", string)
 
 
-def parse_google(json_data: list, qry: str = "") -> dict[str, list]:
+def parse_google(json_data: list, qry: str = "") -> dict[str, Any]:
     """Parse Google autocomplete API response.
 
     Args:
@@ -121,7 +121,7 @@ def parse_bing_qry(raw_html: str, qry: str = "") -> str | None:
         return None
 
 
-def parse_bing(raw_html: str, qry: str = "") -> dict[str, list]:
+def parse_bing(raw_html: str, qry: str = "") -> dict[str, Any]:
     """Parse Bing autocomplete API response.
 
     Args:
@@ -159,8 +159,29 @@ def to_edgelist(tree: list[dict], self_loops: bool = False) -> pl.DataFrame:
     Returns:
         DataFrame with edge list columns (root, edge, source, target, rank, etc.)
     """
-    edge_list = []
     assert isinstance(tree, list), "Must pass a list of dicts"
+
+    schema = {
+        "root": pl.String,
+        "edge": pl.String,
+        "source": pl.String,
+        "target": pl.String,
+        "rank": pl.Int64,
+        "depth": pl.Int64,
+        "search_engine": pl.String,
+        "datetime": pl.String,
+    }
+    cols: dict[str, list] = {name: [] for name in schema}
+
+    def append(root, edge, source, target, rank, depth, engine, dt):
+        cols["root"].append(root)
+        cols["edge"].append(edge)
+        cols["source"].append(source)
+        cols["target"].append(target)
+        cols["rank"].append(rank)
+        cols["depth"].append(depth)
+        cols["search_engine"].append(engine)
+        cols["datetime"].append(dt)
 
     for row in tree:
         if self_loops:
@@ -170,37 +191,14 @@ def to_edgelist(tree: list[dict], self_loops: bool = False) -> pl.DataFrame:
 
         if suggests:
             for rank, s in enumerate(suggests):
-                edge = OrderedDict(
-                    [
-                        ("root", row["root"]),
-                        ("edge", str((row["qry"], s))),
-                        ("source", row["qry"]),
-                        ("target", html.unescape(s)),
-                        ("rank", rank + 1),
-                        ("depth", row["depth"]),
-                        ("search_engine", row["source"]),
-                        ("datetime", row["datetime"]),
-                    ]
-                )
-                edge_list.append(edge)
-        else:  # If no suggests at root, append empty root
-            if row["depth"] == 0:
-                no_edges = OrderedDict(
-                    [
-                        ("root", row["root"]),
-                        ("edge", None),
-                        ("source", row["qry"]),
-                        ("target", None),
-                        ("rank", 1),
-                        ("depth", row["depth"]),
-                        ("search_engine", row["source"]),
-                        ("datetime", row["datetime"]),
-                    ]
-                )
-                edge_list.append(no_edges)
+                # s is already unescaped by parse_google/parse_bing
+                append(row["root"], str((row["qry"], s)), row["qry"], s,
+                       rank + 1, row["depth"], row["source"], row["datetime"])
+        elif row["depth"] == 0:  # If no suggests at root, append empty root
+            append(row["root"], None, row["qry"], None,
+                   1, row["depth"], row["source"], row["datetime"])
 
-    edge_df = pl.DataFrame(edge_list)
-    return edge_df
+    return pl.DataFrame(cols, schema=schema)
 
 
 def add_parent_nodes(edges: pl.DataFrame) -> pl.DataFrame:

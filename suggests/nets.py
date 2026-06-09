@@ -3,6 +3,7 @@
 import random
 
 import igraph as ig
+import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
 import polars as pl
@@ -199,7 +200,7 @@ def plot_network(
         ax=ax,
         node_size=node_sizes,
         node_color=node_colors,
-        cmap=plt.cm.tab20,
+        cmap=matplotlib.colormaps["tab20"],
         alpha=0.85,
         linewidths=0.3,
         edgecolors="white",

@@ -74,7 +74,6 @@ def requester(
     source: str = "bing",
     sesh: requests.Session | None = None,
     sleep: float | None = None,
-    allow_zip: bool = False,
     hl: str | None = None,
     mkt: str | None = None,
 ) -> dict | str | None:
@@ -85,7 +84,6 @@ def requester(
         source: Search engine to submit query to, either "bing" or "google"
         sesh: Pass a custom requests session
         sleep: Custom sleep duration
-        allow_zip: Enable response content unzipping
         hl: Google language code (e.g. 'en', 'de', 'fr')
         mkt: Bing market code (e.g. 'en-us', 'de-de', 'es-es')
 
