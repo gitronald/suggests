@@ -16,8 +16,18 @@ dependencies = [
 [project.urls]
 homepage = "http://github.com/gitronald/suggests"
 
+[project.optional-dependencies]
+viz = [
+    "adjusttext>=1.3.0",
+    "igraph>=1.0.0",
+    "matplotlib>=3.7",
+    "networkx>=3.0",
+    "scipy>=1.11",
+]
+
 [project.scripts]
-demo = 'scripts.demo:main'
+demo = 'suggests.scripts.demo:main'
+suggests-plot = 'suggests.scripts.plot:main'
 
 [dependency-groups]
 dev = [

@@ -69,6 +69,29 @@ class TestRequester:
         result = requester("test", source="google", sesh=sesh, sleep=0)
         assert result is None
 
+    @patch("suggests.suggests.time.sleep")
+    @patch("suggests.suggests.sleep_random")
+    def test_sleep_zero_disables_random_sleep(self, mock_random, mock_sleep):
+        from unittest.mock import MagicMock
+
+        sesh = MagicMock()
+        sesh.get.return_value.text = "<html></html>"
+        requester("test", source="bing", sesh=sesh, sleep=0)
+        # sleep=0 must mean "do not throttle", not "random sleep"
+        mock_random.assert_not_called()
+        mock_sleep.assert_called_once_with(0)
+
+    @patch("suggests.suggests.time.sleep")
+    @patch("suggests.suggests.sleep_random")
+    def test_sleep_none_uses_random_sleep(self, mock_random, mock_sleep):
+        from unittest.mock import MagicMock
+
+        sesh = MagicMock()
+        sesh.get.return_value.text = "<html></html>"
+        requester("test", source="bing", sesh=sesh, sleep=None)
+        mock_random.assert_called_once()
+        mock_sleep.assert_not_called()
+
 
 class TestGetSuggests:
     @patch("suggests.suggests.requester")

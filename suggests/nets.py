@@ -3,6 +3,7 @@
 import random
 
 import igraph as ig
+import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
 import polars as pl
@@ -25,16 +26,6 @@ def set_node_attributes(g: nx.DiGraph, root: str) -> None:
     set_attr(g, nx.closeness_centrality(g), "closeness_centrality")
     set_attr(g, nx.clustering(nx.Graph(g)), "clustering")
     set_attr(g, nx.single_source_shortest_path_length(g, root), "network_depth")
-
-
-def set_edge_attributes(g: nx.DiGraph) -> None:
-    """Add betweenness centrality edge attributes (inplace operation).
-
-    Args:
-        g: Directed graph to add edge attributes to
-    """
-    set_attr = nx.set_edge_attributes
-    set_attr(g, nx.edge_betweenness_centrality(g), "betweenness_centrality")
 
 
 def nodes_to_df(g: nx.DiGraph) -> pl.DataFrame:
@@ -199,7 +190,7 @@ def plot_network(
         ax=ax,
         node_size=node_sizes,
         node_color=node_colors,
-        cmap=plt.cm.tab20,
+        cmap=matplotlib.colormaps["tab20"],
         alpha=0.85,
         linewidths=0.3,
         edgecolors="white",

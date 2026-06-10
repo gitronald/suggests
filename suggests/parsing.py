@@ -2,8 +2,7 @@
 
 import html
 import re
-import urllib.parse
-from collections import OrderedDict
+from typing import Any
 
 import polars as pl
 from bs4 import BeautifulSoup
@@ -13,69 +12,12 @@ from . import logger
 log = logger.Logger().start(__name__)
 
 
-def get_source_target_columns(edges: pl.DataFrame) -> pl.DataFrame:
-    """Extract source and target columns from edge tuples.
-
-    Args:
-        edges: DataFrame with an 'edge' column of string tuple representations
-
-    Returns:
-        DataFrame with source and target columns appended
-    """
-    edge_details = (
-        edges.select(
-            pl.col("edge")
-            .str.strip_chars("()")
-            .str.splitn(", ", 2)
-            .struct.rename_fields(["source", "target"])
-        )
-        .unnest("edge")
-        .with_columns(
-            pl.col("source").str.strip_chars("'\""),
-            pl.col("target").str.strip_chars("'\""),
-        )
-    )
-    return pl.concat([edges, edge_details], how="horizontal")
-
-
-def parse_raw_data(raw_data: pl.DataFrame, source: str) -> pl.DataFrame:
-    """Parse raw aggregated data into edge lists.
-
-    Args:
-        raw_data: DataFrame with a 'data' column of raw API responses
-        source: Search engine name ('google' or 'bing')
-
-    Returns:
-        DataFrame with parsed suggestion columns appended
-    """
-    parser = parse_google if source == "google" else parse_bing
-    parsed = [parser(row) for row in raw_data["data"].to_list()]
-    parsed_df = pl.DataFrame(parsed)
-    return pl.concat([raw_data, parsed_df], how="horizontal")
-
-
-def get_edges(data: pl.DataFrame) -> pl.DataFrame:
-    """Parse raw data grouped by source and convert to edge lists.
-
-    Args:
-        data: DataFrame with 'source' and 'data' columns
-
-    Returns:
-        Combined edge list DataFrame
-    """
-    clean_data = [
-        parse_raw_data(group_df, source_name)
-        for source_name, group_df in data.group_by("source", maintain_order=True)
-    ]
-    return pl.concat([to_edgelist(df.to_dicts()) for df in clean_data])
-
-
 def strip_html(string: str) -> str:
     """Strip HTML tags from a string."""
     return re.sub("<[^<]+?>", "", string)
 
 
-def parse_google(json_data: list, qry: str = "") -> dict[str, list]:
+def parse_google(json_data: list, qry: str = "") -> dict[str, Any]:
     """Parse Google autocomplete API response.
 
     Args:
@@ -93,9 +35,9 @@ def parse_google(json_data: list, qry: str = "") -> dict[str, list]:
 
         qry = json_data[0]
         suggests = [
-            s[0] + " - " + s[3]["b"] if s[1] == 46 else s[0] for s in json_data[1]
+            suggest_parser(s[0] + " - " + s[3]["b"] if s[1] == 46 else s[0])
+            for s in json_data[1]
         ]
-        suggests = [suggest_parser(s) for s in suggests]
         tags = json_data[2]
         return qry, suggests, tags
 
@@ -109,19 +51,7 @@ def parse_google(json_data: list, qry: str = "") -> dict[str, list]:
     return parsed
 
 
-def parse_bing_qry(raw_html: str, qry: str = "") -> str | None:
-    """Recover query from Bing response HTML."""
-    li = BeautifulSoup(raw_html).find("li")
-    if li is None:
-        return None
-    url = li.get("url")
-    if url:
-        return str(urllib.parse.parse_qs(urllib.parse.urlparse(url).query)["pq"][0])
-    else:
-        return None
-
-
-def parse_bing(raw_html: str, qry: str = "") -> dict[str, list]:
+def parse_bing(raw_html: str, qry: str = "") -> dict[str, Any]:
     """Parse Bing autocomplete API response.
 
     Args:
@@ -134,12 +64,10 @@ def parse_bing(raw_html: str, qry: str = "") -> dict[str, list]:
 
     def bing_parser(raw_html: str) -> list[str]:
         soup = BeautifulSoup(raw_html, "html.parser")
-        if not soup.text:
-            # No suggestions
-            return []
-        suggests = [div.text for div in soup.find_all("div", {"class": "sa_tm"})]
-        suggests = [html.unescape(s) for s in suggests]
-        return suggests
+        return [
+            html.unescape(div.text)
+            for div in soup.find_all("div", {"class": "sa_tm"})
+        ]
 
     try:
         suggests = bing_parser(raw_html)
@@ -161,8 +89,29 @@ def to_edgelist(tree: list[dict], self_loops: bool = False) -> pl.DataFrame:
     Returns:
         DataFrame with edge list columns (root, edge, source, target, rank, etc.)
     """
-    edge_list = []
     assert isinstance(tree, list), "Must pass a list of dicts"
+
+    schema = {
+        "root": pl.String,
+        "edge": pl.String,
+        "source": pl.String,
+        "target": pl.String,
+        "rank": pl.Int64,
+        "depth": pl.Int64,
+        "search_engine": pl.String,
+        "datetime": pl.String,
+    }
+    cols: dict[str, list] = {name: [] for name in schema}
+
+    def append(root, edge, source, target, rank, depth, engine, dt):
+        cols["root"].append(root)
+        cols["edge"].append(edge)
+        cols["source"].append(source)
+        cols["target"].append(target)
+        cols["rank"].append(rank)
+        cols["depth"].append(depth)
+        cols["search_engine"].append(engine)
+        cols["datetime"].append(dt)
 
     for row in tree:
         if self_loops:
@@ -172,37 +121,14 @@ def to_edgelist(tree: list[dict], self_loops: bool = False) -> pl.DataFrame:
 
         if suggests:
             for rank, s in enumerate(suggests):
-                edge = OrderedDict(
-                    [
-                        ("root", row["root"]),
-                        ("edge", str((row["qry"], s))),
-                        ("source", row["qry"]),
-                        ("target", html.unescape(s)),
-                        ("rank", rank + 1),
-                        ("depth", row["depth"]),
-                        ("search_engine", row["source"]),
-                        ("datetime", row["datetime"]),
-                    ]
-                )
-                edge_list.append(edge)
-        else:  # If no suggests at root, append empty root
-            if row["depth"] == 0:
-                no_edges = OrderedDict(
-                    [
-                        ("root", row["root"]),
-                        ("edge", None),
-                        ("source", row["qry"]),
-                        ("target", None),
-                        ("rank", 1),
-                        ("depth", row["depth"]),
-                        ("search_engine", row["source"]),
-                        ("datetime", row["datetime"]),
-                    ]
-                )
-                edge_list.append(no_edges)
+                # s is already unescaped by parse_google/parse_bing
+                append(row["root"], str((row["qry"], s)), row["qry"], s,
+                       rank + 1, row["depth"], row["source"], row["datetime"])
+        elif row["depth"] == 0:  # If no suggests at root, append empty root
+            append(row["root"], None, row["qry"], None,
+                   1, row["depth"], row["source"], row["datetime"])
 
-    edge_df = pl.DataFrame(edge_list)
-    return edge_df
+    return pl.DataFrame(cols, schema=schema)
 
 
 def add_parent_nodes(edges: pl.DataFrame) -> pl.DataFrame:
@@ -214,7 +140,7 @@ def add_parent_nodes(edges: pl.DataFrame) -> pl.DataFrame:
     Returns:
         DataFrame with 'parent' and 'grandparent' columns added
     """
-    edges_original = edges.clone()
+    edges_original = edges
 
     # Get parent node
     parent = edges.select(
@@ -277,7 +203,7 @@ def _compute_metanode(row: dict) -> dict:
     if not source_add:  # information removed
         source_add = parent_add
     if not target_add:
-        print(f"circle back: {source_add}")
+        log.debug("circle back: %s", source_add)
         target_add = source_add
 
     return {
