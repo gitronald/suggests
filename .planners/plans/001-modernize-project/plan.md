@@ -1,8 +1,10 @@
 ---
+id: 1
+slug: modernize-project
 status: done
 branch: dev
 created: 2026-03-12T12:07:30-07:00
-completed: 2026-03-12T12:20:11-07:00
+concluded: 2026-03-12T12:20:11-07:00
 pr: https://github.com/gitronald/suggests/pull/10
 ---
 

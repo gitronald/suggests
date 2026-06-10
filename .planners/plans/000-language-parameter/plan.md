@@ -1,12 +1,14 @@
 ---
+id: 0
+slug: language-parameter
 status: done
 branch: feature/language-parameter
 created: 2026-03-12T11:00:00-07:00
-completed: 2026-03-12T12:00:00-07:00
+concluded: 2026-03-12T12:00:00-07:00
 pr: https://github.com/gitronald/suggests/pull/9
 ---
 
-# Plan
+# Add language parameter
 
 Add language parameter support for Google and Bing autocomplete APIs.
 
