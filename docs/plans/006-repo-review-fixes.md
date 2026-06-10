@@ -1,8 +1,10 @@
 ---
+id: 6
+slug: repo-review-fixes
 status: done
 branch: claude/repo-code-review-9dELY
 created: 2026-06-06T16:41:24Z
-completed: 2026-06-09T21:05:25-07:00
+concluded: 2026-06-09T21:05:25-07:00
 pr: https://github.com/gitronald/suggests/pull/20
 ---
 

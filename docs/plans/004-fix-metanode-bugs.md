@@ -1,8 +1,10 @@
 ---
+id: 4
+slug: fix-metanode-bugs
 status: done
 branch: update/pandas-to-polars
 created: 2026-03-12T17:05:20-07:00
-completed: 2026-03-12T18:04:12-07:00
+concluded: 2026-03-12T18:04:12-07:00
 pr: https://github.com/gitronald/suggests/pull/11
 ---
 

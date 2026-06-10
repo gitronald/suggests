@@ -1,8 +1,10 @@
 ---
+id: 3
+slug: network-plot
 status: done
 branch: feature/network-py-plots
 created: 2026-03-12T15:00:02-07:00
-completed: 2026-03-21T14:25:38-07:00
+concluded: 2026-03-21T14:25:38-07:00
 pr: https://github.com/gitronald/suggests/pull/13
 ---
 
