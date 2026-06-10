@@ -423,10 +423,43 @@ test; `ruff check` clean):
 - **Item 7 (stale TODO)** — removed the already-fixed `UnboundLocalError` line;
   linked plan 006 in `TODO.md`.
 
+### 2026-06-06 — scripts → package + 8a decision
+
+**Item 3 (implemented).** Moved `scripts/` into the package as
+`suggests/scripts/` and removed the top-level dir:
+- `demo` entry point fixed: `scripts.demo:main` → `suggests.scripts.demo:main`
+  (was broken for installed users — `scripts/` was never in the wheel).
+- `plot_abortion_tree.py` → generic `suggests/scripts/plot.py`: argparse CLI
+  (`--edges/--root/--save-to/--label-col/--layout/...`), no hard-coded abortion
+  paths, lazy viz imports, `Agg` backend. Exposed as console script
+  `suggests-plot` and runnable via `python -m suggests.scripts.plot`.
+- Added a `[project.optional-dependencies] viz` extra
+  (matplotlib/igraph/networkx/adjusttext/scipy) so plotting deps are declared
+  for end users (`pip install "suggests[viz]"`); the CLI prints install guidance
+  on `ImportError`. README updated with the generic invocation.
+- Resolved the dev-vs-shipped question: plot is a **shipped generic command**,
+  with the heavy deps kept **optional** so the core install stays lightweight.
+- Verified: `suggests-plot` reproduces the README network (12,112 edges, 139
+  labels) from CSV args; 48 tests pass; `ruff` clean.
+
+**Item 8a (decided: do NOT implement — keep the UDF).** Due diligence on the
+fixture showed the rewrite is net-negative:
+- `add_metanodes` runs in **~83 ms over all 12,112 rows** (best of 5) — processed
+  once, offline; the pipeline is not CPU-bound and crawls are network-bound.
+- **27 rows have legitimately duplicated tokens** in `source_add` (e.g.
+  `"what are the of the"`). The Python comprehension preserves order + dupes;
+  Polars `list.set_difference` treats lists as sets and would dedup them,
+  breaking byte-exact output. A faithful rewrite needs explode →
+  position-preserving anti-join → re-group + the two sequential fallbacks — ~40
+  lines of intricate Polars for an 83 ms gain. Not worth the readability/bug
+  cost. This is the plan's pre-agreed "abandon if vectorization is awkward" path.
+- Fixture branch coverage is otherwise good (null/not-null parent+grandparent,
+  917 circle-backs, multi-token diffs). Gap: the "both diffs empty → `None`"
+  branch is unexercised (0 null source_add/target_add) — note for any future
+  metanode change (add a direct `_compute_metanode` unit test then).
+
 ### Still deferred
 
 - **Item 1** — Bing HTTP/HTTPS: needs a networked run (sandbox blocks egress).
-- **Item 3** — scripts → package module: blocked on the dev-vs-shipped decision.
-- **Item 8a** — native-Polars metanode rewrite (highest value, golden-test gated).
 - **Item 7 (logging-on-import)** — left as-is; changing import-time logging
   setup is behavior-risky, deferred as a deliberate "consider", not a fix.
