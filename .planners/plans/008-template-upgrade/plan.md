@@ -45,3 +45,24 @@ Sync decisions per matrix row:
 Verification gate: `uv sync --all-groups`, `ruff format --check`,
 `ruff check`, `pyrefly check`, `pre-commit run --all-files`, and `pytest`
 all green before the Stop hook lands.
+
+## Log
+
+**2026-06-10 — implementation.**
+
+- Tooling: added `[tool.ruff]`/`[tool.ruff.lint]`, `[tool.pyrefly]` strict
+  (tests sub-config relaxing `implicit-any`), `[tool.pytest.ini_options]`,
+  sdist `only-include`, and `pyrefly` dev dep. Synced the template pre-commit
+  hooks ahead of `planners-validate`.
+- CI: synced `test.yml` to the template (version-tag pins, permissions
+  block, ruff + pyrefly steps; kept `--cov=suggests`); added `publish.yml`
+  (disabled behind `PUBLISH_ENABLED`) and `dependabot.yml`.
+- `.gitignore`: merged template entries and fixed a merged-line bug
+  (`notebooks.worktrees/` was two entries collapsed into one).
+- Code: ruff autofixes plus type annotations across `logger.py`, `nets.py`,
+  `parsing.py`, `suggests.py`, and tests. `parse_google` now accepts
+  `list[Any] | None` with an explicit None guard (matches the existing
+  graceful-failure test). networkx stub false positives scoped out via a
+  `suggests/nets.py` sub-config (overload/argument-type kinds only).
+- Gate: ruff check + format, pyrefly (0 errors), pytest (52 passed), and
+  pre-commit all green.
