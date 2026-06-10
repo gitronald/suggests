@@ -1,9 +1,9 @@
 ---
-status: draft
+status: active
 branch: claude/repo-code-review-9dELY
-created: 2026-06-06T00:00:00-07:00
+created: 2026-06-06T16:41:24Z
 completed:
-pr:
+pr: https://github.com/gitronald/suggests/pull/20
 ---
 
 # Repo code review fixes
