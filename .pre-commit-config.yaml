@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: planners-validate
+        name: validate plan frontmatter
+        entry: planners validate
+        language: system
+        files: ^\.planners/plans/[^/]+/plan\.md$
