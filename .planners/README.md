@@ -2,8 +2,8 @@
 
 | # | Plan | Status | Concluded | PR |
 |---|---|---|---|---|
-| 007 | [Migrate plans to the .planners layout](plans/007-migrate-to-planners-layout/plan.md) | active | — | — |
 | 005 | [Metanode token diff quality issues](plans/005-case-sensitive-token-diff/plan.md) | draft | — | — |
+| 007 | [Migrate plans to the .planners layout](plans/007-migrate-to-planners-layout/plan.md) | done | 2026-06-10 09:13 PT | [#21](https://github.com/gitronald/suggests/pull/21) |
 | 006 | [Repo code review fixes](plans/006-repo-review-fixes/plan.md) | done | 2026-06-09 21:05 PT | [#20](https://github.com/gitronald/suggests/pull/20) |
 | 003 | [Add network plot function to nets.py](plans/003-network-plot/plan.md) | done | 2026-03-21 14:25 PT | [#13](https://github.com/gitronald/suggests/pull/13) |
 | 002 | [Migrate pandas to polars](plans/002-pandas-to-polars/plan.md) | done | 2026-03-13 01:23 UTC | [#11](https://github.com/gitronald/suggests/pull/11) |
