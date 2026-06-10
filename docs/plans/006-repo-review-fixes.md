@@ -1,8 +1,8 @@
 ---
-status: active
+status: done
 branch: claude/repo-code-review-9dELY
 created: 2026-06-06T16:41:24Z
-completed:
+completed: 2026-06-09T21:05:25-07:00
 pr: https://github.com/gitronald/suggests/pull/20
 ---
 
@@ -488,3 +488,23 @@ is worth recording.
 - **Item 1** — Bing HTTP/HTTPS: needs a networked run (sandbox blocks egress).
 - **Item 7 (logging-on-import)** — left as-is; changing import-time logging
   setup is behavior-risky, deferred as a deliberate "consider", not a fix.
+
+## Retrospective
+
+- The byte-exact golden integration test was the decisive asset both ways: it
+  let aggressive refactors ship with confidence (8b/8c) and it killed one (8a —
+  Polars `list.set_difference` would have silently deduped 27 rows). Behavior
+  preservation was verified, not asserted.
+- Measuring before optimizing paid off: the metanode UDF — the "obvious" big
+  win — turned out to be 83 ms total, and the pre-agreed "abandon if
+  vectorization is awkward" clause made backing out a plan-following move
+  rather than a failure.
+- The broken `demo` entry point shipped for a long time because entry points
+  were only ever exercised from a repo checkout. Anything declared in
+  `[project.scripts]` needs a built-wheel check, not just local testing.
+- The post-implementation PR review still found real (if small) items —
+  unbounded caches, an import in the wrong scope, untested new behavior — and
+  it flagged that one "behavior-preserving" claim (8c) was actually a
+  defensible behavior change. A second pass after "done" is cheap and worth it.
+- Bing HTTP/HTTPS could not be resolved in-sandbox (no egress); the
+  network-gated test spec in item 1 keeps it actionable instead of forgotten.
