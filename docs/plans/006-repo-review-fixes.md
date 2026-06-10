@@ -458,6 +458,31 @@ fixture showed the rewrite is net-negative:
   branch is unexercised (0 null source_add/target_add) — note for any future
   metanode change (add a direct `_compute_metanode` unit test then).
 
+### 2026-06-09 — PR review follow-ups (implemented)
+
+PR #20 review surfaced three small items, implemented and verified (52 tests
+pass; `ruff check` clean):
+
+- **Bounded URL caches** — `lru_cache(maxsize=None)` → `maxsize=8` on
+  `get_google_url`/`get_bing_url`; keys are user-supplied locale strings, so
+  unbounded growth was possible in principle even if unlikely in practice.
+- **`plot.py` import placement** — `polars` is a core dependency, so it moved
+  out of the viz `try`/`except ImportError`; a missing polars no longer
+  misreports as a missing viz extra. Also `e.name or e` so the message never
+  reads "(None)".
+- **Test gaps** — added `test_empty_input_returns_typed_frame` (pins the
+  `(0, 8)` schema'd frame from `to_edgelist([])`) and `tests/test_scripts.py`
+  (plot CLI parser defaults, exit-code-2 on missing required args, invalid
+  `--layout` rejection).
+- **Plan metadata** — activated (`status: active`), `created` corrected to the
+  real first-commit timestamp, `pr` filled.
+
+Review also noted (no code change): the `to_edgelist` double-unescape removal
+(8c) is technically a behavior change for doubly-escaped input
+(`&amp;amp;` → `&amp;` now, `&` before) — the new single-unescape is the more
+correct behavior and the golden fixture is byte-identical, but the edge case
+is worth recording.
+
 ### Still deferred
 
 - **Item 1** — Bing HTTP/HTTPS: needs a networked run (sandbox blocks egress).
