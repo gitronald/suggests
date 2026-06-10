@@ -396,11 +396,37 @@ integration test; `ruff check` clean):
   fuses the `html.unescape` pass; None/empty-input behavior preserved (verified
   by `test_empty_html`).
 
-### Still deferred (not in this batch)
+### 2026-06-06 — cleanup batch (implemented)
+
+Implemented and verified (48 tests pass incl. byte-exact golden integration
+test; `ruff check` clean):
+
+- **Item 8b** — `to_edgelist` builds columns directly and constructs one
+  `pl.DataFrame` with an explicit schema (dropped `OrderedDict` + the
+  collections import).
+- **Item 7 (empty frame)** — the explicit schema makes empty input return a
+  `(0, 8)` schema'd frame instead of a columnless one.
+- **Item 8c** — removed the redundant double `html.unescape` on `target`
+  (parser already unescapes); verified byte-exact against the golden fixture.
+- **Item 6 (allow_zip)** — dropped the vestigial unused `allow_zip` param from
+  `requester`.
+- **Item 6 (dead utilities)** — deleted five unused, undocumented,
+  non-`__all__` functions confirmed absent from README/scripts/tests:
+  `get_source_target_columns`, `parse_raw_data`, `get_edges`, `parse_bing_qry`
+  (`parsing.py`, also dropped the now-unused `urllib.parse` import), and
+  `set_edge_attributes` (`nets.py`). Decision: delete (alpha stage, zero usage;
+  recoverable from git).
+- **Item 7 (type hints)** — `parse_google`/`parse_bing` now return
+  `dict[str, Any]` (tags is `dict` on success, `list` on failure).
+- **Item 7 (colormap)** — `nets` uses `matplotlib.colormaps["tab20"]` instead of
+  the deprecated `plt.cm.tab20` path.
+- **Item 7 (stale TODO)** — removed the already-fixed `UnboundLocalError` line;
+  linked plan 006 in `TODO.md`.
+
+### Still deferred
 
 - **Item 1** — Bing HTTP/HTTPS: needs a networked run (sandbox blocks egress).
 - **Item 3** — scripts → package module: blocked on the dev-vs-shipped decision.
-- **Item 6 / 7** — dead-code removal, type-hint/empty-frame nits, stale TODO.
 - **Item 8a** — native-Polars metanode rewrite (highest value, golden-test gated).
-- **Item 8b** — `to_edgelist` columnar build / `OrderedDict`→`dict`.
-- **Item 8c** — remove redundant double `html.unescape` on `target`.
+- **Item 7 (logging-on-import)** — left as-is; changing import-time logging
+  setup is behavior-risky, deferred as a deliberate "consider", not a fix.

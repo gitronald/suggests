@@ -28,16 +28,6 @@ def set_node_attributes(g: nx.DiGraph, root: str) -> None:
     set_attr(g, nx.single_source_shortest_path_length(g, root), "network_depth")
 
 
-def set_edge_attributes(g: nx.DiGraph) -> None:
-    """Add betweenness centrality edge attributes (inplace operation).
-
-    Args:
-        g: Directed graph to add edge attributes to
-    """
-    set_attr = nx.set_edge_attributes
-    set_attr(g, nx.edge_betweenness_centrality(g), "betweenness_centrality")
-
-
 def nodes_to_df(g: nx.DiGraph) -> pl.DataFrame:
     """Convert nodes dictionary to DataFrame with node attributes as columns.
 

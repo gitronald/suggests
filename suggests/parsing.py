@@ -2,7 +2,6 @@
 
 import html
 import re
-import urllib.parse
 from typing import Any
 
 import polars as pl
@@ -11,63 +10,6 @@ from bs4 import BeautifulSoup
 from . import logger
 
 log = logger.Logger().start(__name__)
-
-
-def get_source_target_columns(edges: pl.DataFrame) -> pl.DataFrame:
-    """Extract source and target columns from edge tuples.
-
-    Args:
-        edges: DataFrame with an 'edge' column of string tuple representations
-
-    Returns:
-        DataFrame with source and target columns appended
-    """
-    edge_details = (
-        edges.select(
-            pl.col("edge")
-            .str.strip_chars("()")
-            .str.splitn(", ", 2)
-            .struct.rename_fields(["source", "target"])
-        )
-        .unnest("edge")
-        .with_columns(
-            pl.col("source").str.strip_chars("'\""),
-            pl.col("target").str.strip_chars("'\""),
-        )
-    )
-    return pl.concat([edges, edge_details], how="horizontal")
-
-
-def parse_raw_data(raw_data: pl.DataFrame, source: str) -> pl.DataFrame:
-    """Parse raw aggregated data into edge lists.
-
-    Args:
-        raw_data: DataFrame with a 'data' column of raw API responses
-        source: Search engine name ('google' or 'bing')
-
-    Returns:
-        DataFrame with parsed suggestion columns appended
-    """
-    parser = parse_google if source == "google" else parse_bing
-    parsed = [parser(row) for row in raw_data["data"].to_list()]
-    parsed_df = pl.DataFrame(parsed)
-    return pl.concat([raw_data, parsed_df], how="horizontal")
-
-
-def get_edges(data: pl.DataFrame) -> pl.DataFrame:
-    """Parse raw data grouped by source and convert to edge lists.
-
-    Args:
-        data: DataFrame with 'source' and 'data' columns
-
-    Returns:
-        Combined edge list DataFrame
-    """
-    clean_data = [
-        parse_raw_data(group_df, source_name)
-        for source_name, group_df in data.group_by("source", maintain_order=True)
-    ]
-    return pl.concat([to_edgelist(df.to_dicts()) for df in clean_data])
 
 
 def strip_html(string: str) -> str:
@@ -107,18 +49,6 @@ def parse_google(json_data: list, qry: str = "") -> dict[str, Any]:
         log.exception("ERROR PARSING GOOGLE:\n%s", json_data)
         parsed = {"suggests": [], "self_loops": [], "tags": []}
     return parsed
-
-
-def parse_bing_qry(raw_html: str, qry: str = "") -> str | None:
-    """Recover query from Bing response HTML."""
-    li = BeautifulSoup(raw_html, "html.parser").find("li")
-    if li is None:
-        return None
-    url = li.get("url")
-    if url:
-        return str(urllib.parse.parse_qs(urllib.parse.urlparse(url).query)["pq"][0])
-    else:
-        return None
 
 
 def parse_bing(raw_html: str, qry: str = "") -> dict[str, Any]:
