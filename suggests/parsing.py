@@ -17,7 +17,7 @@ def strip_html(string: str) -> str:
     return re.sub("<[^<]+?>", "", string)
 
 
-def parse_google(json_data: list, qry: str = "") -> dict[str, Any]:
+def parse_google(json_data: list[Any] | None, qry: str = "") -> dict[str, Any]:
     """Parse Google autocomplete API response.
 
     Args:
@@ -28,7 +28,7 @@ def parse_google(json_data: list, qry: str = "") -> dict[str, Any]:
         Dictionary with 'suggests', 'self_loops', and 'tags' keys
     """
 
-    def google_parser(json_data: list) -> tuple[str, list[str], list]:
+    def google_parser(json_data: list[Any]) -> tuple[str, list[str], list[Any]]:
 
         def suggest_parser(s: str) -> str:
             return html.unescape(strip_html(s))
@@ -41,7 +41,10 @@ def parse_google(json_data: list, qry: str = "") -> dict[str, Any]:
         tags = json_data[2]
         return qry, suggests, tags
 
+    parsed: dict[str, Any]
     try:
+        if json_data is None:
+            raise ValueError("json_data is None")
         qry, suggests, tags = google_parser(json_data)
         self_loops = [i for i, s in enumerate(suggests) if s == qry]
         parsed = {"suggests": suggests, "self_loops": self_loops, "tags": tags}
@@ -65,10 +68,10 @@ def parse_bing(raw_html: str, qry: str = "") -> dict[str, Any]:
     def bing_parser(raw_html: str) -> list[str]:
         soup = BeautifulSoup(raw_html, "html.parser")
         return [
-            html.unescape(div.text)
-            for div in soup.find_all("div", {"class": "sa_tm"})
+            html.unescape(div.text) for div in soup.find_all("div", {"class": "sa_tm"})
         ]
 
+    parsed: dict[str, Any]
     try:
         suggests = bing_parser(raw_html)
         self_loops = [i for i, s in enumerate(suggests) if s == qry]
@@ -79,7 +82,7 @@ def parse_bing(raw_html: str, qry: str = "") -> dict[str, Any]:
     return parsed
 
 
-def to_edgelist(tree: list[dict], self_loops: bool = False) -> pl.DataFrame:
+def to_edgelist(tree: list[dict[str, Any]], self_loops: bool = False) -> pl.DataFrame:
     """Convert suggestions tree to an edge list DataFrame.
 
     Args:
@@ -101,9 +104,18 @@ def to_edgelist(tree: list[dict], self_loops: bool = False) -> pl.DataFrame:
         "search_engine": pl.String,
         "datetime": pl.String,
     }
-    cols: dict[str, list] = {name: [] for name in schema}
+    cols: dict[str, list[Any]] = {name: [] for name in schema}
 
-    def append(root, edge, source, target, rank, depth, engine, dt):
+    def append(
+        root: str,
+        edge: str | None,
+        source: str,
+        target: str | None,
+        rank: int,
+        depth: int,
+        engine: str,
+        dt: str,
+    ) -> None:
         cols["root"].append(root)
         cols["edge"].append(edge)
         cols["source"].append(source)
@@ -122,11 +134,27 @@ def to_edgelist(tree: list[dict], self_loops: bool = False) -> pl.DataFrame:
         if suggests:
             for rank, s in enumerate(suggests):
                 # s is already unescaped by parse_google/parse_bing
-                append(row["root"], str((row["qry"], s)), row["qry"], s,
-                       rank + 1, row["depth"], row["source"], row["datetime"])
+                append(
+                    row["root"],
+                    str((row["qry"], s)),
+                    row["qry"],
+                    s,
+                    rank + 1,
+                    row["depth"],
+                    row["source"],
+                    row["datetime"],
+                )
         elif row["depth"] == 0:  # If no suggests at root, append empty root
-            append(row["root"], None, row["qry"], None,
-                   1, row["depth"], row["source"], row["datetime"])
+            append(
+                row["root"],
+                None,
+                row["qry"],
+                None,
+                1,
+                row["depth"],
+                row["source"],
+                row["datetime"],
+            )
 
     return pl.DataFrame(cols, schema=schema)
 
@@ -187,10 +215,12 @@ def add_parent_nodes(edges: pl.DataFrame) -> pl.DataFrame:
     return edges_original.join(merged_parents, on="edge", how="left")
 
 
-def _compute_metanode(row: dict) -> dict:
+def _compute_metanode(row: dict[str, Any]) -> dict[str, str | None]:
     """Compute source_add and target_add for a single row."""
-    grandparent = [] if row["grandparent"] is None else row["grandparent"].split(" ")
-    parent = [] if row["parent"] is None else row["parent"].split(" ")
+    grandparent: list[str] = (
+        [] if row["grandparent"] is None else row["grandparent"].split(" ")
+    )
+    parent: list[str] = [] if row["parent"] is None else row["parent"].split(" ")
 
     source = row["source"].split(" ")
     target = row["target"].split(" ")
@@ -224,12 +254,12 @@ def add_metanodes(edges: pl.DataFrame) -> pl.DataFrame:
     Returns:
         DataFrame with 'source_add' and 'target_add' columns added
     """
-    meta = (
-        edges.select(
-            pl.struct(["source", "target", "parent", "grandparent"])
-            .map_elements(_compute_metanode, return_dtype=pl.Struct({"source_add": pl.String, "target_add": pl.String}))
-            .alias("_meta")
+    meta = edges.select(
+        pl.struct(["source", "target", "parent", "grandparent"])
+        .map_elements(
+            _compute_metanode,
+            return_dtype=pl.Struct({"source_add": pl.String, "target_add": pl.String}),
         )
-        .unnest("_meta")
-    )
+        .alias("_meta")
+    ).unnest("_meta")
     return pl.concat([edges, meta], how="horizontal")

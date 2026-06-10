@@ -101,7 +101,7 @@ class TestToEdgelist:
 
     def test_invalid_input_type(self):
         with pytest.raises(AssertionError):
-            to_edgelist("not a list")
+            to_edgelist("not a list")  # pyrefly: ignore[bad-argument-type]
 
     def test_empty_input_returns_typed_frame(self):
         edges = to_edgelist([])

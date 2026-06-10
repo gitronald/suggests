@@ -2,6 +2,7 @@
 
 import logging
 import logging.config
+from typing import Any
 
 # Formatters: change what gets logged
 minimal = "%(message)s"
@@ -31,7 +32,7 @@ class Logger:
         console_level: str = "DEBUG",
     ) -> None:
         # Handlers: change file and console logging details
-        handlers: dict[str, dict] = {}
+        handlers: dict[str, dict[str, Any]] = {}
         if console:
             assert console_format in formatters, (
                 f"Must select formatting type from {list(formatters.keys())}"

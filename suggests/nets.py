@@ -1,6 +1,7 @@
 """General network utility functions."""
 
 import random
+from typing import Any, cast
 
 import igraph as ig
 import matplotlib
@@ -10,7 +11,7 @@ import polars as pl
 from adjustText import adjust_text
 
 
-def set_node_attributes(g: nx.DiGraph, root: str) -> None:
+def set_node_attributes(g: nx.DiGraph[str], root: str) -> None:
     """Add centrality and depth node attributes (inplace operation).
 
     Args:
@@ -24,11 +25,12 @@ def set_node_attributes(g: nx.DiGraph, root: str) -> None:
     set_attr(g, nx.degree_centrality(g), "degree_centrality")
     set_attr(g, nx.betweenness_centrality(g), "betweenness_centrality")
     set_attr(g, nx.closeness_centrality(g), "closeness_centrality")
-    set_attr(g, nx.clustering(nx.Graph(g)), "clustering")
+    clustering = cast(dict[str, float], nx.clustering(nx.Graph(g)))
+    set_attr(g, clustering, "clustering")
     set_attr(g, nx.single_source_shortest_path_length(g, root), "network_depth")
 
 
-def nodes_to_df(g: nx.DiGraph) -> pl.DataFrame:
+def nodes_to_df(g: nx.DiGraph[str]) -> pl.DataFrame:
     """Convert nodes dictionary to DataFrame with node attributes as columns.
 
     Args:
@@ -41,7 +43,7 @@ def nodes_to_df(g: nx.DiGraph) -> pl.DataFrame:
     return pl.DataFrame(records)
 
 
-def get_root_component(g: nx.DiGraph, root: str) -> nx.DiGraph | None:
+def get_root_component(g: nx.DiGraph[str], root: str) -> nx.DiGraph[str] | None:
     """Get the weakly connected component containing the root node.
 
     Args:
@@ -58,7 +60,7 @@ def get_root_component(g: nx.DiGraph, root: str) -> nx.DiGraph | None:
     return None
 
 
-def find_unreachable_nodes(g: nx.DiGraph, root: str) -> list[str]:
+def find_unreachable_nodes(g: nx.DiGraph[str], root: str) -> list[str]:
     """Find nodes not reachable from the root via directed paths.
 
     Args:
@@ -135,11 +137,9 @@ def plot_network(
     node_colors = [node_to_community[n] for n in g.nodes()]
 
     # Build short label mapping from edges if label_col is available
-    node_labels = {}
+    node_labels: dict[str, str] = {}
     if label_col in edges.columns:
-        for target, label in zip(
-            edges["target"].to_list(), edges[label_col].to_list()
-        ):
+        for target, label in zip(edges["target"].to_list(), edges[label_col].to_list()):
             if label is not None and target not in node_labels:
                 node_labels[target] = label
         if "source_add" in edges.columns:
@@ -179,8 +179,14 @@ def plot_network(
 
     # Draw edges
     nx.draw_networkx_edges(
-        g, pos, ax=ax, edge_color="#cccccc", alpha=0.3,
-        arrows=True, arrowsize=3, width=0.3,
+        g,
+        pos,
+        ax=ax,
+        edge_color="#cccccc",
+        alpha=0.3,
+        arrows=True,
+        arrowsize=3,
+        width=0.3,
     )
 
     # Draw nodes
@@ -197,14 +203,19 @@ def plot_network(
     )
 
     # Draw labels scaled by degree, then deoverlap with adjustText
-    texts = []
+    texts: list[Any] = []
     for node, (x, y) in pos.items():
         if node in labels:
             scale = (degree[node] / max_deg) ** 0.5
             size = font_size * (1 + 9 * scale)
             t = ax.text(
-                x, y, labels[node],
-                fontsize=size, fontweight="bold", ha="center", va="center",
+                x,
+                y,
+                labels[node],
+                fontsize=size,
+                fontweight="bold",
+                ha="center",
+                va="center",
                 alpha=label_alpha,
             )
             texts.append(t)
