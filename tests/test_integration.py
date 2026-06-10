@@ -49,7 +49,9 @@ class TestAbortionPipeline:
         assert "source_add" in result.columns
         assert "target_add" in result.columns
 
-    def test_full_pipeline_matches_expected(self, abortion_tree, abortion_edges_expected):
+    def test_full_pipeline_matches_expected(
+        self, abortion_tree, abortion_edges_expected
+    ):
         edges = to_edgelist(abortion_tree)
         edges = add_parent_nodes(edges)
         edges = add_metanodes(edges)
@@ -57,9 +59,17 @@ class TestAbortionPipeline:
         assert edges["source"].to_list() == abortion_edges_expected["source"].to_list()
         assert edges["target"].to_list() == abortion_edges_expected["target"].to_list()
 
-    def test_metanode_values_match_expected(self, abortion_tree, abortion_edges_expected):
+    def test_metanode_values_match_expected(
+        self, abortion_tree, abortion_edges_expected
+    ):
         edges = to_edgelist(abortion_tree)
         edges = add_parent_nodes(edges)
         edges = add_metanodes(edges)
-        assert edges["source_add"].to_list() == abortion_edges_expected["source_add"].to_list()
-        assert edges["target_add"].to_list() == abortion_edges_expected["target_add"].to_list()
+        assert (
+            edges["source_add"].to_list()
+            == abortion_edges_expected["source_add"].to_list()
+        )
+        assert (
+            edges["target_add"].to_list()
+            == abortion_edges_expected["target_add"].to_list()
+        )

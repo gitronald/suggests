@@ -10,9 +10,12 @@ def bing_html():
     """Sample Bing autocomplete HTML response."""
     return (
         '<ul class="sa_drw">'
-        '<li class="sa_sg"><div class="sa_tm"><span class="sa_tm_text">dog toys</span></div></li>'
-        '<li class="sa_sg"><div class="sa_tm"><span class="sa_tm_text">dog food</span></div></li>'
-        '<li class="sa_sg"><div class="sa_tm"><span class="sa_tm_text">dog breeds</span></div></li>'
+        '<li class="sa_sg"><div class="sa_tm">'
+        '<span class="sa_tm_text">dog toys</span></div></li>'
+        '<li class="sa_sg"><div class="sa_tm">'
+        '<span class="sa_tm_text">dog food</span></div></li>'
+        '<li class="sa_sg"><div class="sa_tm">'
+        '<span class="sa_tm_text">dog breeds</span></div></li>'
         "</ul>"
     )
 

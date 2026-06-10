@@ -2,13 +2,13 @@
 
 import functools
 import json
+import random
 import time
 import urllib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import requests
-import random
 
 from . import logger, parsing
 
@@ -76,7 +76,7 @@ def requester(
     sleep: float | None = None,
     hl: str | None = None,
     mkt: str | None = None,
-) -> dict | str | None:
+) -> dict[str, Any] | str | None:
     """Requester with logging and specified user agent
 
     Args:
@@ -107,7 +107,7 @@ def requester(
         time.sleep(sleep)
     else:
         sleep_random()
-    log.info("%s | %s", "%s" % source, qry)
+    log.info("%s | %s", source, qry)
     response = None
     try:
         response = sesh.get(url, timeout=10)
@@ -150,7 +150,7 @@ def get_suggests(
 
     tree: dict[str, Any] = {
         "qry": qry,
-        "datetime": str(datetime.now(timezone.utc).replace(tzinfo=None)),
+        "datetime": str(datetime.now(UTC).replace(tzinfo=None)),
         "source": source,
         "data": requester(qry, source, sesh, sleep, hl=hl, mkt=mkt),
     }
@@ -215,8 +215,12 @@ def get_suggests_tree(
             for qry, suggest_list in suggests.items():
                 if suggest_list:
                     for s in suggest_list:
-                        if s not in all_suggests:  # Don't crawl self-loops or duplicates
-                            branches = get_suggests(s, source, sesh, sleep, hl=hl, mkt=mkt)
+                        if (
+                            s not in all_suggests
+                        ):  # Don't crawl self-loops or duplicates
+                            branches = get_suggests(
+                                s, source, sesh, sleep, hl=hl, mkt=mkt
+                            )
                             branches["depth"] = depth
                             branches["root"] = root
                             branches["crawl_id"] = crawl_id

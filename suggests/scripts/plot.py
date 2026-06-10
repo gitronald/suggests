@@ -26,24 +26,30 @@ def build_parser() -> argparse.ArgumentParser:
         description="Plot a suggestion network from an edge-list CSV.",
     )
     p.add_argument(
-        "--edges", required=True,
+        "--edges",
+        required=True,
         help="Path to an edge-list CSV with 'source' and 'target' columns.",
     )
     p.add_argument(
-        "--root", required=True,
+        "--root",
+        required=True,
         help="Root node used to extract the main connected component.",
     )
     p.add_argument(
-        "--save-to", default="",
+        "--save-to",
+        default="",
         help="Output image path. If omitted, the figure is not written to disk.",
     )
     p.add_argument(
-        "--label-col", default="target_add",
+        "--label-col",
+        default="target_add",
         help="Column for node labels ('target_add' for metanode labels, "
-             "'target' for full suggestion text).",
+        "'target' for full suggestion text).",
     )
     p.add_argument(
-        "--layout", default="fr", choices=["fr", "drl"],
+        "--layout",
+        default="fr",
+        choices=["fr", "drl"],
         help="igraph layout algorithm.",
     )
     p.add_argument("--size-scale", type=float, default=500)
@@ -60,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         import matplotlib
+
         matplotlib.use("Agg")
 
         from suggests.nets import plot_network
