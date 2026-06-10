@@ -5,4 +5,4 @@
 archive
 build
 data
-notebooks
+notebooks.worktrees/
