@@ -12,6 +12,10 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      # Pin every uv command to the matrix interpreter. Without this, uv run
+      # falls back to .python-version (3.14) and all cells silently test 3.14.
+      UV_PYTHON: ${{ matrix.python-version }}
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13", "3.14"]
