@@ -103,6 +103,22 @@ class TestToEdgelist:
         with pytest.raises(AssertionError):
             to_edgelist("not a list")
 
+    def test_empty_input_returns_typed_frame(self):
+        edges = to_edgelist([])
+        assert edges.shape == (0, 8)
+        assert edges.columns == [
+            "root",
+            "edge",
+            "source",
+            "target",
+            "rank",
+            "depth",
+            "search_engine",
+            "datetime",
+        ]
+        assert edges.schema["rank"] == pl.Int64
+        assert edges.schema["source"] == pl.String
+
 
 class TestAddParentNodes:
     def test_adds_parent_column(self, sample_tree):
