@@ -37,7 +37,7 @@ def prepare_qry(qry: str) -> str:
     return urllib.parse.quote_plus(qry)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=8)
 def get_google_url(hl: str = "en", sclient: str = "psy-ab") -> str:
     """Get Google autocomplete API URL.
 
@@ -52,7 +52,7 @@ def get_google_url(hl: str = "en", sclient: str = "psy-ab") -> str:
     return f"https://www.google.com/complete/search?{params}"
 
 
-@functools.lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=8)
 def get_bing_url(
     mkt: str = "en-us", cvid: str = "CF23583902D944F1874B7D9E36F452CD"
 ) -> str:

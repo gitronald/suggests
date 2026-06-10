@@ -17,6 +17,8 @@ igraph, networkx, adjustText). Install them with the ``viz`` extra:
 import argparse
 import sys
 
+import polars as pl
+
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
@@ -59,12 +61,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         import matplotlib
         matplotlib.use("Agg")
-        import polars as pl
 
         from suggests.nets import plot_network
     except ImportError as e:
         print(
-            f"Plotting requires the visualization dependencies ({e.name}). "
+            f"Plotting requires the visualization dependencies ({e.name or e}). "
             'Install them with: pip install "suggests[viz]"',
             file=sys.stderr,
         )
