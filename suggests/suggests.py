@@ -1,13 +1,14 @@
 """Recursively retrieve autocomplete suggestions from Google and Bing."""
 
+import functools
 import json
+import random
 import time
 import urllib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import requests
-import random
 
 from . import logger, parsing
 
@@ -36,6 +37,7 @@ def prepare_qry(qry: str) -> str:
     return urllib.parse.quote_plus(qry)
 
 
+@functools.lru_cache(maxsize=8)
 def get_google_url(hl: str = "en", sclient: str = "psy-ab") -> str:
     """Get Google autocomplete API URL.
 
@@ -50,6 +52,7 @@ def get_google_url(hl: str = "en", sclient: str = "psy-ab") -> str:
     return f"https://www.google.com/complete/search?{params}"
 
 
+@functools.lru_cache(maxsize=8)
 def get_bing_url(
     mkt: str = "en-us", cvid: str = "CF23583902D944F1874B7D9E36F452CD"
 ) -> str:
@@ -71,10 +74,9 @@ def requester(
     source: str = "bing",
     sesh: requests.Session | None = None,
     sleep: float | None = None,
-    allow_zip: bool = False,
     hl: str | None = None,
     mkt: str | None = None,
-) -> dict | str | None:
+) -> dict[str, Any] | str | None:
     """Requester with logging and specified user agent
 
     Args:
@@ -82,7 +84,6 @@ def requester(
         source: Search engine to submit query to, either "bing" or "google"
         sesh: Pass a custom requests session
         sleep: Custom sleep duration
-        allow_zip: Enable response content unzipping
         hl: Google language code (e.g. 'en', 'de', 'fr')
         mkt: Bing market code (e.g. 'en-us', 'de-de', 'es-es')
 
@@ -102,8 +103,11 @@ def requester(
         base = get_google_url(hl or "en")
     url = base + prepare_qry(qry)
 
-    time.sleep(sleep) if sleep else sleep_random()
-    log.info("%s | %s", "%s" % source, qry)
+    if sleep is not None:
+        time.sleep(sleep)
+    else:
+        sleep_random()
+    log.info("%s | %s", source, qry)
     response = None
     try:
         response = sesh.get(url, timeout=10)
@@ -146,7 +150,7 @@ def get_suggests(
 
     tree: dict[str, Any] = {
         "qry": qry,
-        "datetime": str(datetime.now(timezone.utc).replace(tzinfo=None)),
+        "datetime": str(datetime.now(UTC).replace(tzinfo=None)),
         "source": source,
         "data": requester(qry, source, sesh, sleep, hl=hl, mkt=mkt),
     }
@@ -211,8 +215,12 @@ def get_suggests_tree(
             for qry, suggest_list in suggests.items():
                 if suggest_list:
                     for s in suggest_list:
-                        if s not in all_suggests:  # Don't crawl self-loops or duplicates
-                            branches = get_suggests(s, source, sesh, sleep, hl=hl, mkt=mkt)
+                        if (
+                            s not in all_suggests
+                        ):  # Don't crawl self-loops or duplicates
+                            branches = get_suggests(
+                                s, source, sesh, sleep, hl=hl, mkt=mkt
+                            )
                             branches["depth"] = depth
                             branches["root"] = root
                             branches["crawl_id"] = crawl_id

@@ -101,7 +101,23 @@ class TestToEdgelist:
 
     def test_invalid_input_type(self):
         with pytest.raises(AssertionError):
-            to_edgelist("not a list")
+            to_edgelist("not a list")  # pyrefly: ignore[bad-argument-type]
+
+    def test_empty_input_returns_typed_frame(self):
+        edges = to_edgelist([])
+        assert edges.shape == (0, 8)
+        assert edges.columns == [
+            "root",
+            "edge",
+            "source",
+            "target",
+            "rank",
+            "depth",
+            "search_engine",
+            "datetime",
+        ]
+        assert edges.schema["rank"] == pl.Int64
+        assert edges.schema["source"] == pl.String
 
 
 class TestAddParentNodes:
