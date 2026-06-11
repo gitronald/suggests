@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-10
+
 ### Added
 
 - `suggests-plot` command for rendering a network plot from any edge-list CSV (requires the `viz` extra); demo and plot scripts moved into the package as `suggests.scripts`
@@ -95,7 +97,8 @@ First tagged release.
 - Replaced the root logger with a package-scoped logger
 - Use the full `beautifulsoup4` package name in dependencies
 
-[Unreleased]: https://github.com/gitronald/suggests/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/gitronald/suggests/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/gitronald/suggests/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/gitronald/suggests/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/gitronald/suggests/compare/v0.1.3...v0.2.0
