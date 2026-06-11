@@ -1,11 +1,11 @@
 ---
 id: 8
 slug: template-upgrade
-status: active
+status: done
 branch: feature/template-upgrade
 created: 2026-06-10T14:10:06-07:00
-concluded:
-pr:
+concluded: 2026-06-10T14:47:33-07:00
+pr: https://github.com/gitronald/suggests/pull/22
 ---
 
 # Upgrade to the latest proj-template standard
@@ -66,3 +66,17 @@ all green before the Stop hook lands.
   `suggests/nets.py` sub-config (overload/argument-type kinds only).
 - Gate: ruff check + format, pyrefly (0 errors), pytest (52 passed), and
   pre-commit all green.
+
+## Retrospective
+
+- The package classification made the sync matrix mechanical — every row landed
+  as specced, with the only real judgment calls in the pyrefly sub-configs.
+- The template's CI matrix had a latent no-op: `uv run` steps ignored the matrix
+  python and every cell ran `.python-version` (3.14). Pinning the matrix
+  interpreter here exposed a real bug the green matrix had been hiding.
+- That bug — `nx.DiGraph[str]` raising `TypeError` at import on 3.11–3.13 — was
+  masked on 3.14 by deferred annotation evaluation. Lesson: a matrix is only as
+  trustworthy as the interpreter each cell actually runs; verify it in the logs.
+- Template side effects gate on the default branch: `dependabot.yml` grouping
+  and `publish.yml` stayed inert until a release carried them to `main`. Worth
+  stating in the plan when the payoff arrives a release later.
