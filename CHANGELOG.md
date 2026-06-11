@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-06-10
+
+### Security
+
+- Bumped locked dependencies to patched versions, resolving all open Dependabot alerts: urllib3 2.7.0, pillow 12.2.0, requests 2.34.2, idna 3.18, Pygments 2.20.0, and pytest 9.0.3
+
+### Changed
+
+- Updated grouped dependencies: polars 1.41.2, matplotlib 3.10.9, pytest-cov 7.1.0, and ruff 0.15.16
+
 ## [0.4.0] - 2026-06-10
 
 ### Added
@@ -97,7 +107,8 @@ First tagged release.
 - Replaced the root logger with a package-scoped logger
 - Use the full `beautifulsoup4` package name in dependencies
 
-[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/gitronald/suggests/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/gitronald/suggests/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/gitronald/suggests/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/gitronald/suggests/compare/v0.2.0...v0.3.0
