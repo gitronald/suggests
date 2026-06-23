@@ -14,7 +14,7 @@ jobs:
     if: vars.PUBLISH_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - uses: astral-sh/setup-uv@v8.2.0
       - run: uv build
       - uses: actions/upload-artifact@v7.0.1
