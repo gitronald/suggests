@@ -2,18 +2,19 @@
 
 Tools for auditing search engine autocomplete.
 
-Retrieves autocomplete suggestions from Google and Bing and recursively expands them into suggestion trees for algorithm audits. Convert trees to polars edge lists, reduce them to association networks, and plot them with the `suggests-plot` command or `plot_network()` in Python. A sleep timer is hard-coded into the recursive crawler (approx ~1 sec) based on my experience — you will get blocked if you do not restrict your crawling speed.
+Retrieves autocomplete suggestions from Google and Bing and recursively expands them into suggestion trees for algorithm audits. Convert trees to polars edge lists, reduce them to association networks, and plot them with the `suggests-plot` command or `plot_network()` in Python. A sleep timer is hard-coded into the recursive crawler (~1 sec) based on my experience — you will get blocked if you do not restrict your crawling speed.
 
-The functionality of this package was demonstrated in the paper listed below, if you use it in your work, please cite our paper!
+The functionality of this package was demonstrated in the paper listed below. If you use it in your work, please cite our paper!
 
 Robertson R. E., Jiang, S., Lazer, D., & Wilson, C. (2019). Auditing autocomplete: Recursive algorithm interrogation and suggestion networks.
 In _Proceedings of the 11th ACM Conference on Web Science (WebSci 2019)_. [PDF](https://cbw.sh/static/pdf/robertson-websci19.pdf)
 
 ```bibtex
-@proceedings{robertson2019autocomplete,
-  title = {Auditing autocomplete: Recursive algorithm interrogation and suggestion networks},
+@inproceedings{robertson2019autocomplete,
   author = {Robertson, Ronald E. and Jiang, Shan and Lazer, David and Wilson, Christo},
-  booktitle = {Proceedings of the 11th International ACM Web Science Conference}
+  year = {2019},
+  title = {Auditing autocomplete: Recursive algorithm interrogation and suggestion networks},
+  booktitle = {Proceedings of the 11th International ACM Web Science Conference},
   series = {WebSci '19},
   doi = {10.1145/3292522.3326047},
 }
@@ -23,16 +24,21 @@ In _Proceedings of the 11th ACM Conference on Web Science (WebSci 2019)_. [PDF](
 
 ```
 suggests/
-├── suggests/              # Python library
-│   ├── suggests.py        # Suggestion retrieval and recursive tree crawling
-│   ├── parsing.py         # Response parsing, edge lists, and metanode extraction
-│   ├── nets.py            # Network construction and plotting
-│   ├── logger.py          # Package-scoped logging
-│   └── scripts/           # CLI commands
-│       ├── demo.py        # Demo crawl (`demo`)
-│       └── plot.py        # Network plotting (`suggests-plot`)
-├── tests/                 # Test suite
-└── pyproject.toml         # Project configuration
+├── .github/workflows/  # CI: tests and PyPI publishing
+├── .planners/          # Plan files
+├── img/                # Network plot images used in this README
+├── suggests/           # Python library
+│   ├── suggests.py     # Suggestion retrieval and recursive tree crawling
+│   ├── parsing.py      # Response parsing, edge lists, and metanode extraction
+│   ├── nets.py         # Network construction and plotting
+│   ├── logger.py       # Package-scoped logging
+│   └── scripts/        # CLI commands
+│       ├── demo.py     # Demo crawl (`demo`)
+│       └── plot.py     # Network plotting (`suggests-plot`)
+├── tests/              # Test suite
+│   └── fixtures/       # Sample crawl data (tree JSON and edge-list CSV)
+├── CHANGELOG.md        # Release history
+└── pyproject.toml      # Project configuration
 ```
 
 ## Installation
@@ -40,27 +46,21 @@ suggests/
 Install with uv:
 
 ```bash
-uv add git+https://github.com/gitronald/suggests
-```
-
-Or with pip:
-
-```bash
-pip install git+https://github.com/gitronald/suggests
-```
-
-From source:
-
-```bash
-git clone https://github.com/gitronald/suggests.git
-cd suggests
-uv sync
+uv add suggests
 ```
 
 Network plotting requires the `viz` extra:
 
 ```bash
-pip install "suggests[viz] @ git+https://github.com/gitronald/suggests"
+uv add "suggests[viz]"
+```
+
+For development, install from GitHub:
+
+```bash
+git clone https://github.com/gitronald/suggests.git
+cd suggests
+uv sync
 ```
 
 ## CLI Commands
@@ -70,7 +70,7 @@ pip install "suggests[viz] @ git+https://github.com/gitronald/suggests"
 Run a depth-1 demo crawl (`dog` on Bing) and print the resulting suggestion tree and edge list:
 
 ```bash
-demo
+uv run demo
 ```
 
 ### suggests-plot
@@ -78,7 +78,7 @@ demo
 Render a network plot from any edge-list CSV (requires the `viz` extra). Wraps `plot_network()`:
 
 ```bash
-suggests-plot --edges edges.csv --root dog --save-to plot.png
+uv run suggests-plot --edges edges.csv --root dog --save-to plot.png
 ```
 
 ## Examples
@@ -225,10 +225,10 @@ Plotted in [Gephi](https://gephi.org/) from an older dataset that is no longer a
 
 ![Abortion Association Network (Gephi)](img/abortion_plot_pagerank_gephi.png?raw=true "Abortion Association Network (Gephi)")
 
-The same network can be generated programmatically with `plot_network()`, using the test fixture dataset (`tests/fixtures/abortion-20260312-122801-edges.csv`). The `suggests-plot` command (requires the `viz` extra: `pip install "suggests[viz]"`) wraps `plot_network()` for any edge-list CSV; the image above was produced with:
+The same network can be generated programmatically with `plot_network()`, using the test fixture dataset (`tests/fixtures/abortion-20260312-122801-edges.csv`). The `suggests-plot` command (requires the `viz` extra: `uv add "suggests[viz]"`) wraps `plot_network()` for any edge-list CSV; the image above was produced with:
 
 ```bash
-suggests-plot \
+uv run suggests-plot \
   --edges tests/fixtures/abortion-20260312-122801-edges.csv \
   --root abortion --label-quantile 0.98 --label-alpha 0.7 --spacing 2.0 \
   --save-to img/abortion_plot_pagerank_python.png
