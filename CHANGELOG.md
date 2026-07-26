@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.2] - 2026-07-26
 
+First release published to PyPI. The `suggests` name on PyPI was controlled by
+another party until [pypi/support#9871](https://github.com/pypi/support/issues/9871#issuecomment-4633850179)
+was resolved and ownership was transferred to this project.
+
 ### Security
 
 - Bumped locked dependencies to patched versions, resolving all 15 open Dependabot alerts: pillow 12.3.0 (heap out-of-bounds writes, decompression bombs, and DoS) and soupsieve 2.9.1 (ReDoS and memory exhaustion)
