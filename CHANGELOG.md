@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-07-26
+
+First release published to PyPI. The `suggests` name on PyPI was controlled by
+another party until [pypi/support#9871](https://github.com/pypi/support/issues/9871#issuecomment-4633850179)
+was resolved and ownership was transferred to this project.
+
+### Security
+
+- Bumped locked dependencies to patched versions, resolving all 15 open Dependabot alerts: pillow 12.3.0 (heap out-of-bounds writes, decompression bombs, and DoS) and soupsieve 2.9.1 (ReDoS and memory exhaustion)
+
+### Changed
+
+- Updated grouped dependencies: polars 1.42.1, beautifulsoup4 4.15.0, adjusttext 1.4.0, matplotlib 3.11.0, pyrefly 1.1.1, pytest 9.1.1, and ruff 0.15.20
+- GitHub Actions workflows now pin actions to commit SHAs; updated actions/checkout 7.0.1, astral-sh/setup-uv 8.3.2, and pypa/gh-action-pypi-publish 1.14.1
+- `add_metanodes` uses `hstack` instead of the horizontal `pl.concat` deprecated in polars 1.42
+
+## [0.4.1] - 2026-06-10
+
+### Security
+
+- Bumped locked dependencies to patched versions, resolving all open Dependabot alerts: urllib3 2.7.0, pillow 12.2.0, requests 2.34.2, idna 3.18, Pygments 2.20.0, and pytest 9.0.3
+
+### Changed
+
+- Updated grouped dependencies: polars 1.41.2, matplotlib 3.10.9, pytest-cov 7.1.0, and ruff 0.15.16
+
 ## [0.4.0] - 2026-06-10
 
 ### Added
@@ -97,7 +123,9 @@ First tagged release.
 - Replaced the root logger with a package-scoped logger
 - Use the full `beautifulsoup4` package name in dependencies
 
-[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/gitronald/suggests/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/gitronald/suggests/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/gitronald/suggests/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/gitronald/suggests/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/gitronald/suggests/compare/v0.2.0...v0.3.0

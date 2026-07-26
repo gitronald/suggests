@@ -262,4 +262,4 @@ def add_metanodes(edges: pl.DataFrame) -> pl.DataFrame:
         )
         .alias("_meta")
     ).unnest("_meta")
-    return pl.concat([edges, meta], how="horizontal")
+    return edges.hstack(meta)
