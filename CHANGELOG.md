@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Bumped locked dependencies to patched versions, resolving all 15 open Dependabot alerts: pillow 12.3.0 (heap out-of-bounds writes, decompression bombs, and DoS) and soupsieve 2.9.1 (ReDoS and memory exhaustion)
+
+### Changed
+
+- Updated grouped dependencies: polars 1.42.1, beautifulsoup4 4.15.0, adjusttext 1.4.0, matplotlib 3.11.0, pyrefly 1.1.1, pytest 9.1.1, and ruff 0.15.20
+- GitHub Actions workflows now pin actions to commit SHAs; updated actions/checkout 7.0.1, astral-sh/setup-uv 8.3.2, and pypa/gh-action-pypi-publish 1.14.1
+- `add_metanodes` uses `hstack` instead of the horizontal `pl.concat` deprecated in polars 1.42
+
 ## [0.4.1] - 2026-06-10
 
 ### Security
