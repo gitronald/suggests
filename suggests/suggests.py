@@ -7,6 +7,7 @@ import time
 import urllib
 from datetime import UTC, datetime
 from typing import Any
+from pathlib import Path
 
 import requests
 
@@ -199,6 +200,8 @@ def get_suggests_tree(
     root_branch["root"] = root
     root_branch["crawl_id"] = crawl_id
 
+    if save_to:
+        Path(save_to).parent.mkdir(parents=True, exist_ok=True)
     outfile = open(save_to, "a+") if save_to else None
     try:
         if outfile:
