@@ -6,8 +6,8 @@ import random
 import time
 import urllib
 from datetime import UTC, datetime
-from typing import Any
 from pathlib import Path
+from typing import Any
 
 import requests
 
