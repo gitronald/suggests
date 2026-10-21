@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Bumped locked dependencies to patched versions, resolving the open Dependabot alert and the advisories found by pip-audit: urllib3 2.8.0 (unbounded chunk-size line buffering), certifi 2026.10.19, pillow 13.0.0, and virtualenv 21.14.8
+
+### Fixed
+
+- `get_suggests_tree` creates the parent directory of `save_to` when it does not exist, instead of failing to open the file
+
+### Changed
+
+- Updated locked dependencies: polars 2.0.0, matplotlib 3.11.2, pre-commit 4.7.0, pyrefly 1.4.0, and ruff 0.17.1
+- Updated GitHub Actions: astral-sh/setup-uv 10.3.0, actions/upload-artifact 7.0.2, actions/download-artifact 8.0.2, and pypa/gh-action-pypi-publish 1.14.3
+- The source distribution now includes `CHANGELOG.md`
+- Tests run with coverage by default, and CI fails below 50% coverage
+
 ## [0.4.2] - 2026-07-26
 
 First release published to PyPI. The `suggests` name on PyPI was controlled by
