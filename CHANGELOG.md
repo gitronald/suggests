@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-10-21
+
 ### Security
 
 - Bumped locked dependencies to patched versions, resolving the open Dependabot alert and the advisories found by pip-audit: urllib3 2.8.0 (unbounded chunk-size line buffering), certifi 2026.10.19, pillow 13.0.0, and virtualenv 21.14.8
@@ -138,7 +140,8 @@ First tagged release.
 - Replaced the root logger with a package-scoped logger
 - Use the full `beautifulsoup4` package name in dependencies
 
-[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/gitronald/suggests/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/gitronald/suggests/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/gitronald/suggests/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/gitronald/suggests/compare/v0.3.1...v0.4.0
