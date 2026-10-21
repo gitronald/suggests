@@ -1163,7 +1163,7 @@ wheels = [
 
 [[package]]
 name = "suggests"
-version = "0.4.3"
+version = "0.4.4a0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
