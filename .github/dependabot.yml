@@ -1,9 +1,12 @@
+# Read from the default branch only; dev edits are inert until merged. Setup:
+# https://github.com/gitronald/proj-template/blob/main/docs/guides/github-automation.md
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    target-branch: dev
     groups:
       github-actions:
         patterns: ["*"]
@@ -13,6 +16,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    target-branch: dev
     groups:
       python:
         patterns: ["*"]

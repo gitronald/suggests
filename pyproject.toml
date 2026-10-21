@@ -1,6 +1,6 @@
 [project]
 name = "suggests"
-version = "0.4.2"
+version = "0.4.3"
 description = "Algorithm auditing tools for search engine autocomplete"
 license = "MIT"
 readme = "README.md"
@@ -15,6 +15,7 @@ dependencies = [
 
 [project.urls]
 homepage = "http://github.com/gitronald/suggests"
+repository = "https://github.com/gitronald/suggests"
 
 [project.optional-dependencies]
 viz = [
@@ -29,6 +30,10 @@ viz = [
 demo = 'suggests.scripts.demo:main'
 suggests-plot = 'suggests.scripts.plot:main'
 
+# proj-template release stamp, set by proj-init.sh and install-template; inert to consumers.
+[tool.proj-template]
+version = "0.11.7"
+
 [dependency-groups]
 dev = [
     "adjusttext>=1.3.0",
@@ -36,10 +41,11 @@ dev = [
     "matplotlib>=3.7",
     "networkx>=3.0",
     "pre-commit>=4.6.0",
-    "pyrefly>=1.0.0",
-    "pytest>=6.2",
+    "pyrefly>=1.3.2",
+    "pytest>=9.1.1",
     "pytest-cov>=4.0",
-    "ruff>=0.15.4",
+    # Same minor as the ruff-pre-commit rev in .pre-commit-config.yaml; bump the two together.
+    "ruff>=0.17,<0.18",
     "scipy>=1.11",
 ]
 
@@ -48,17 +54,19 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.sdist]
-# Ship only what a PyPI consumer needs. Root-anchored (leading "/") so bare
-# filenames don't glob at every depth — this keeps internal plan files
-# (.planners/), data, images, tests, and tooling out of the published sdist.
+# Ship only what a PyPI consumer needs; a leading "/" anchors each path to the root.
+# hatchling always adds pyproject.toml, PKG-INFO, and .gitignore, so keep secrets out of them.
 only-include = [
     "/suggests",
     "/README.md",
+    "/CHANGELOG.md",
     "/LICENSE.txt",
 ]
 
 [tool.ruff]
 target-version = "py311"
+# ruff formats Python fences in Markdown; keep it off plans and the changelog.
+extend-exclude = [".planners/", "CHANGELOG.md"]
 
 [tool.ruff.lint]
 select = [
@@ -75,18 +83,14 @@ python-version = "3.11"
 project-includes = ["."]
 project-excludes = ["**/__pycache__", "**/.venv"]
 
-# tests/ stays type-checked (imports, undefined names, type mismatches),
-# but the implicit-any check is relaxed there so unannotated pytest fixture
-# params (e.g. `def test_x(tmp_path):`) don't force annotations.
+# tests/ stays type-checked, but unannotated pytest fixture params don't fail implicit-any.
 [[tool.pyrefly.sub-config]]
 matches = "tests/**"
 
 [tool.pyrefly.sub-config.errors]
 implicit-any = false
 
-# networkx's bundled stubs misresolve the set_node_attributes overloads and
-# leave _Node generics unbound, producing false positives on overload and
-# argument-type checks; relax those kinds for the network module only.
+# networkx's stubs misresolve set_node_attributes and _Node generics; relax nets.py only.
 [[tool.pyrefly.sub-config]]
 matches = "suggests/nets.py"
 
@@ -98,3 +102,18 @@ bad-index = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--cov --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["suggests"]
+branch = true
+
+[tool.coverage.report]
+skip_empty = true
+fail_under = 50
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
