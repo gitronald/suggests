@@ -4,7 +4,7 @@ slug: pandas-to-polars
 status: done
 branch: dev/polars-migration
 created: 2026-03-12T13:19:16-07:00
-concluded: 2026-03-13T01:23:46Z
+concluded: 2026-03-12T18:23:46-07:00
 pr: https://github.com/gitronald/suggests/pull/11
 ---
 
