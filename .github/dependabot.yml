@@ -1,5 +1,5 @@
 # Read from the default branch only; dev edits are inert until merged. Setup:
-# https://github.com/gitronald/proj-template/blob/main/docs/guides/github-automation.md
+# https://github.com/gitronald/repotemplates/blob/main/docs/guides/github-automation.md
 version: 2
 updates:
   - package-ecosystem: github-actions

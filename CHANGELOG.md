@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-11-13
+
+### Changed
+
+- Updated locked dependencies: ruff 0.17.3, virtualenv 21.15.6, and filelock 4.2.9
+- Updated tooling: ruff pre-commit hook 0.17.3 and astral-sh/setup-uv 10.3.3 in the CI workflows
+- Synced the repo with the repotemplates 0.15.0 tooling template
+
 ## [0.4.3] - 2026-10-21
 
 ### Security
@@ -140,7 +148,8 @@ First tagged release.
 - Replaced the root logger with a package-scoped logger
 - Use the full `beautifulsoup4` package name in dependencies
 
-[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.4...HEAD
+[0.4.4]: https://github.com/gitronald/suggests/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/gitronald/suggests/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/gitronald/suggests/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/gitronald/suggests/compare/v0.4.0...v0.4.1
