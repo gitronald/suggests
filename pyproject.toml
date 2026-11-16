@@ -6,7 +6,7 @@ license = "MIT"
 readme = "README.md"
 authors = [{ name = "Ronald E. Robertson", email = "rer@acm.org" }]
 keywords = ["suggestions", "autocomplete", "google", "bing", "search engine", "search queries"]
-requires-python = ">=3.11"
+requires-python = ">=3.11.5"
 dependencies = [
     "requests>=2.28",
     "polars>=1.0",
