@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-11-16
+
 ### Changed
 
 - `requires-python` is now `>=3.11.5` (was `>=3.11`), the floor of every soupsieve release that fixes its current security advisories. Python 3.11.0 to 3.11.4 are no longer supported
@@ -156,7 +158,8 @@ First tagged release.
 - Replaced the root logger with a package-scoped logger
 - Use the full `beautifulsoup4` package name in dependencies
 
-[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.4...HEAD
+[Unreleased]: https://github.com/gitronald/suggests/compare/v0.4.5...HEAD
+[0.4.5]: https://github.com/gitronald/suggests/compare/v0.4.4...v0.4.5
 [0.4.4]: https://github.com/gitronald/suggests/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/gitronald/suggests/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/gitronald/suggests/compare/v0.4.1...v0.4.2
