@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `requires-python` is now `>=3.11.5` (was `>=3.11`), the floor of every soupsieve release that fixes its current security advisories. Python 3.11.0 to 3.11.4 are no longer supported
+
+### Security
+
+- Locked soupsieve 4.1 (was 2.9.1), clearing four advisories in CSS selector compilation and matching. suggests itself calls no CSS selectors, so the package was not exposed through its own code
+
 ## [0.4.4] - 2026-11-13
 
 ### Changed
